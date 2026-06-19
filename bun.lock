@@ -79,6 +79,19 @@
         "typescript-eslint": "^8.50.0",
       },
     },
+    "packages/ocr": {
+      "name": "@repo/ocr",
+      "version": "0.0.0",
+      "dependencies": {
+        "@repo/split-core": "*",
+        "zod": "^4.4.3",
+      },
+      "devDependencies": {
+        "@repo/typescript-config": "*",
+        "typescript": "5.9.2",
+        "vitest": "^4.1.9",
+      },
+    },
     "packages/split-core": {
       "name": "@repo/split-core",
       "version": "0.0.0",
@@ -547,6 +560,8 @@
     "@react-native/virtualized-lists": ["@react-native/virtualized-lists@0.85.3", "", { "dependencies": { "invariant": "^2.2.4", "nullthrows": "^1.1.1" }, "peerDependencies": { "@types/react": "^19.2.0", "react": "*", "react-native": "0.85.3" }, "optionalPeers": ["@types/react"] }, "sha512-dsCjI//OIPEUJMyNHp4l7zNLVjCx7bcaRUceOCkU+IB17hkbtbGWvi7HjGFSzy7FJGmS/MOlcfpb72xXiy1Oig=="],
 
     "@repo/eslint-config": ["@repo/eslint-config@workspace:packages/eslint-config"],
+
+    "@repo/ocr": ["@repo/ocr@workspace:packages/ocr"],
 
     "@repo/split-core": ["@repo/split-core@workspace:packages/split-core"],
 
