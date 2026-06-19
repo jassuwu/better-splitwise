@@ -18,6 +18,7 @@ export default function RootLayout() {
             <Stack.Screen name="add" options={{ presentation: 'modal', title: 'Add expense' }} />
             <Stack.Screen name="settle" options={{ presentation: 'modal', title: 'Settle up' }} />
             <Stack.Screen name="assign" options={{ presentation: 'modal', title: 'Split by item' }} />
+            <Stack.Screen name="friend/[id]" options={{ title: 'Friend' }} />
             <Stack.Screen name="group/[id]" options={{ title: 'Group' }} />
             <Stack.Screen name="expense/[id]" options={{ title: 'Expense' }} />
           </Stack>
