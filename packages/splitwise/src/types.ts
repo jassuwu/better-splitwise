@@ -1,9 +1,24 @@
+export interface Balance {
+  /** ISO 4217 currency code. */
+  currency_code: string;
+  /** Signed decimal string: positive = owed to the user, negative = the user owes. */
+  amount: string;
+}
+
+export interface Debt {
+  from: number;
+  to: number;
+  amount: string;
+  currency_code: string;
+}
+
 export interface SplitwiseUser {
   id: number;
   first_name: string | null;
   last_name: string | null;
   email?: string | null;
   default_currency?: string | null;
+  balance?: Balance[];
   picture?: { medium?: string | null } | null;
 }
 
@@ -12,6 +27,9 @@ export interface Group {
   name: string;
   members: SplitwiseUser[];
   simplify_by_default?: boolean;
+  simplified_debts?: Debt[];
+  original_debts?: Debt[];
+  updated_at?: string;
 }
 
 export type Friend = SplitwiseUser;
