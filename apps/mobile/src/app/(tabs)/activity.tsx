@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -24,7 +24,8 @@ export default function Activity() {
         contentContainerStyle={[
           styles.content,
           { paddingTop: insets.top + Spacing.three, paddingBottom: insets.bottom + BottomTabInset + 40 },
-        ]}>
+        ]}
+        refreshControl={<RefreshControl refreshing={expenses.isRefetching} onRefresh={() => void expenses.refetch()} />}>
         <ThemedText type="subtitle">Activity</ThemedText>
         {expenses.isLoading && <Loading />}
         {expenses.error && <ErrorText>{String(expenses.error)}</ErrorText>}

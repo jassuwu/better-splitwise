@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GlassFab } from '@/components/glass-fab';
@@ -46,7 +46,17 @@ export default function Home() {
         contentContainerStyle={[
           styles.content,
           { paddingTop: insets.top + Spacing.three, paddingBottom: insets.bottom + BottomTabInset + 110 },
-        ]}>
+        ]}
+        refreshControl={
+          <RefreshControl
+            refreshing={user.isRefetching || friends.isRefetching || groups.isRefetching}
+            onRefresh={() => {
+              void user.refetch();
+              void friends.refetch();
+              void groups.refetch();
+            }}
+          />
+        }>
         <ThemedText type="small" themeColor="textSecondary">
           overall
         </ThemedText>
@@ -66,7 +76,11 @@ export default function Home() {
             <ThemedText type="smallBold">friends</ThemedText>
             {owingFriends.map((f) => {
               const net = netBalance(f.balance);
-              return <BalanceRow key={f.id} name={displayName(f)} amount={net.amount} currency={net.currency} />;
+              return (
+                <Pressable key={f.id} onPress={() => router.push(`/friend/${f.id}`)}>
+                  <BalanceRow name={displayName(f)} amount={net.amount} currency={net.currency} />
+                </Pressable>
+              );
             })}
           </Card>
         )}

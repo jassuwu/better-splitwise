@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GlassFab } from '@/components/glass-fab';
@@ -22,7 +22,16 @@ export default function Groups() {
         contentContainerStyle={[
           styles.content,
           { paddingTop: insets.top + Spacing.three, paddingBottom: insets.bottom + BottomTabInset + 110 },
-        ]}>
+        ]}
+        refreshControl={
+          <RefreshControl
+            refreshing={groups.isRefetching}
+            onRefresh={() => {
+              void groups.refetch();
+              void user.refetch();
+            }}
+          />
+        }>
         <ThemedText type="subtitle">Groups</ThemedText>
         {groups.isLoading && <Loading />}
         {groups.error && <ErrorText>{String(groups.error)}</ErrorText>}
