@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "super-splitwise",
+    "slug": "super-splitwise",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobile",
+    "scheme": "supersplitwise",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon"
@@ -36,7 +36,14 @@
         }
       ],
       "expo-secure-store",
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "super-splitwise reads receipt photos you pick so it can itemize a bill.",
+          "cameraPermission": "super-splitwise uses the camera to scan receipts."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
