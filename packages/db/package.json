@@ -14,11 +14,11 @@
   "dependencies": {
     "@repo/split-core": "*",
     "@repo/splitwise": "*",
-    "drizzle-orm": "^0.45.2"
+    "drizzle-orm": "catalog:"
   },
   "devDependencies": {
     "@repo/typescript-config": "*",
-    "typescript": "5.9.2",
-    "vitest": "^4.1.9"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

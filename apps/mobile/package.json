@@ -7,7 +7,7 @@
     "@repo/split-core": "*",
     "@repo/splitwise": "*",
     "@expo/ui": "~56.0.18",
-    "drizzle-orm": "0.45.2",
+    "drizzle-orm": "catalog:",
     "expo": "~56.0.12",
     "expo-constants": "~56.0.18",
     "expo-device": "~56.0.4",

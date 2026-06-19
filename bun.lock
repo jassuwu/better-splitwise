@@ -7,7 +7,7 @@
       "devDependencies": {
         "prettier": "^3.7.4",
         "turbo": "^2.9.18",
-        "typescript": "5.9.2",
+        "typescript": "catalog:",
       },
     },
     "apps/mobile": {
@@ -18,7 +18,7 @@
         "@repo/db": "*",
         "@repo/split-core": "*",
         "@repo/splitwise": "*",
-        "drizzle-orm": "0.45.2",
+        "drizzle-orm": "catalog:",
         "expo": "~56.0.12",
         "expo-constants": "~56.0.18",
         "expo-device": "~56.0.4",
@@ -65,7 +65,7 @@
         "@types/react": "19.2.2",
         "@types/react-dom": "19.2.2",
         "eslint": "^9.39.1",
-        "typescript": "5.9.2",
+        "typescript": "catalog:",
       },
     },
     "packages/db": {
@@ -74,12 +74,12 @@
       "dependencies": {
         "@repo/split-core": "*",
         "@repo/splitwise": "*",
-        "drizzle-orm": "^0.45.2",
+        "drizzle-orm": "catalog:",
       },
       "devDependencies": {
         "@repo/typescript-config": "*",
-        "typescript": "5.9.2",
-        "vitest": "^4.1.9",
+        "typescript": "catalog:",
+        "vitest": "catalog:",
       },
     },
     "packages/eslint-config": {
@@ -95,7 +95,7 @@
         "eslint-plugin-react-hooks": "^5.2.0",
         "eslint-plugin-turbo": "^2.7.1",
         "globals": "^16.5.0",
-        "typescript": "^5.9.2",
+        "typescript": "catalog:",
         "typescript-eslint": "^8.50.0",
       },
     },
@@ -104,24 +104,24 @@
       "version": "0.0.0",
       "dependencies": {
         "@repo/split-core": "*",
-        "zod": "^4.4.3",
+        "zod": "catalog:",
       },
       "devDependencies": {
         "@repo/typescript-config": "*",
-        "typescript": "5.9.2",
-        "vitest": "^4.1.9",
+        "typescript": "catalog:",
+        "vitest": "catalog:",
       },
     },
     "packages/split-core": {
       "name": "@repo/split-core",
       "version": "0.0.0",
       "dependencies": {
-        "zod": "^4.4.3",
+        "zod": "catalog:",
       },
       "devDependencies": {
         "@repo/typescript-config": "*",
-        "typescript": "5.9.2",
-        "vitest": "^4.1.9",
+        "typescript": "catalog:",
+        "vitest": "catalog:",
       },
     },
     "packages/splitwise": {
@@ -132,8 +132,8 @@
       },
       "devDependencies": {
         "@repo/typescript-config": "*",
-        "typescript": "5.9.2",
-        "vitest": "^4.1.9",
+        "typescript": "catalog:",
+        "vitest": "catalog:",
       },
     },
     "packages/typescript-config": {
@@ -154,9 +154,15 @@
         "@types/react": "19.2.2",
         "@types/react-dom": "19.2.2",
         "eslint": "^9.39.1",
-        "typescript": "5.9.2",
+        "typescript": "catalog:",
       },
     },
+  },
+  "catalog": {
+    "drizzle-orm": "^0.45.2",
+    "typescript": "5.9.2",
+    "vitest": "^4.1.9",
+    "zod": "^4.4.3",
   },
   "packages": {
     "@adobe/css-tools": ["@adobe/css-tools@4.5.0", "", {}, "sha512-6OzddxPio9UiWTCemp4N8cYLV2ZN1ncRnV1cVGtve7dhPOtRkleRyx32GQCYSwDYgaHU3USMm84tNsvKzRCa1Q=="],
