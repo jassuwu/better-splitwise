@@ -3,6 +3,7 @@ export interface SplitwiseUser {
   first_name: string | null;
   last_name: string | null;
   email?: string | null;
+  default_currency?: string | null;
   picture?: { medium?: string | null } | null;
 }
 
