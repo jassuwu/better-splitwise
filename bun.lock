@@ -91,6 +91,18 @@
         "vitest": "^4.1.9",
       },
     },
+    "packages/splitwise": {
+      "name": "@repo/splitwise",
+      "version": "0.0.0",
+      "dependencies": {
+        "@repo/split-core": "*",
+      },
+      "devDependencies": {
+        "@repo/typescript-config": "*",
+        "typescript": "5.9.2",
+        "vitest": "^4.1.9",
+      },
+    },
     "packages/typescript-config": {
       "name": "@repo/typescript-config",
       "version": "0.0.0",
@@ -537,6 +549,8 @@
     "@repo/eslint-config": ["@repo/eslint-config@workspace:packages/eslint-config"],
 
     "@repo/split-core": ["@repo/split-core@workspace:packages/split-core"],
+
+    "@repo/splitwise": ["@repo/splitwise@workspace:packages/splitwise"],
 
     "@repo/typescript-config": ["@repo/typescript-config@workspace:packages/typescript-config"],
 
