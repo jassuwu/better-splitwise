@@ -24,7 +24,19 @@ describe("geminiReceiptSchema", () => {
   it("strips JSON-Schema keywords Gemini rejects and inlines any refs", () => {
     const keys = new Set<string>();
     collectKeys(buildGeminiReceiptSchema(), keys);
-    for (const banned of ["$schema", "$ref", "$defs", "definitions", "additionalProperties"]) {
+    for (const banned of [
+      "$schema",
+      "$ref",
+      "$defs",
+      "definitions",
+      "additionalProperties",
+      "exclusiveMinimum",
+      "exclusiveMaximum",
+      "multipleOf",
+      "minLength",
+      "maxLength",
+      "pattern",
+    ]) {
       expect(keys.has(banned)).toBe(false);
     }
   });

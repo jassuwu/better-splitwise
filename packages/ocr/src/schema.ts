@@ -5,7 +5,21 @@ type JsonObject = Record<string, unknown>;
 
 // Gemini's responseSchema accepts only a subset of JSON Schema. Strip keywords
 // it rejects, and inline any $ref/$defs so the schema is self-contained.
-const STRIP_KEYS = new Set(["$schema", "additionalProperties", "default", "$defs", "definitions"]);
+const STRIP_KEYS = new Set([
+  "$schema",
+  "additionalProperties",
+  "default",
+  "$defs",
+  "definitions",
+  // numeric/string constraints Gemini's responseSchema subset rejects (Zod emits
+  // exclusiveMinimum for .positive(), etc.). Gemini keeps minimum/maximum/minItems/maxItems.
+  "exclusiveMinimum",
+  "exclusiveMaximum",
+  "multipleOf",
+  "minLength",
+  "maxLength",
+  "pattern",
+]);
 
 function clean(node: unknown, defs: JsonObject): unknown {
   if (Array.isArray(node)) return node.map((n) => clean(n, defs));
