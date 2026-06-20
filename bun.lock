@@ -21,6 +21,7 @@
         "@repo/split-core": "*",
         "@repo/splitwise": "*",
         "@tanstack/react-query": "^5.101.0",
+        "babel-preset-expo": "~56.0.0",
         "drizzle-orm": "catalog:",
         "expo": "~56.0.12",
         "expo-constants": "~56.0.18",
