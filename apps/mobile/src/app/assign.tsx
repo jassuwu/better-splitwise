@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, Card, Chip, Empty, ErrorText, Money, Screen } from '@/components/ui';
+import { Button, Card, Chip, Empty, ErrorText, Money, Row, Screen, Section } from '@/components/ui';
 import { firstName } from '@/lib/format';
 import { getPendingReceipt } from '@/lib/pending-receipt';
 import { useCreateExpense, useCurrentUser, useGroups } from '@/lib/queries';
@@ -40,9 +40,9 @@ export default function Assign() {
 
   if (!receipt) {
     return (
-      <Screen glow="volt">
-        <ScrollView contentContainerStyle={{ padding: 20 }}>
-          <Empty>no scanned receipt — scan one from add first</Empty>
+      <Screen>
+        <ScrollView contentContainerStyle={{ padding: 16 }}>
+          <Empty>No scanned receipt — scan one from Add first.</Empty>
         </ScrollView>
       </Screen>
     );
@@ -103,12 +103,12 @@ export default function Assign() {
   function push() {
     setError(null);
     if (!group || payerId === null) {
-      setError('missing group or payer');
+      setError('Missing group or payer');
       return;
     }
     const splitInput = buildSplit();
     if (!splitInput) {
-      setError('assign at least one item to someone');
+      setError('Assign at least one item to someone');
       return;
     }
     let split: ReturnType<typeof computeSplit>;
@@ -136,18 +136,18 @@ export default function Assign() {
   }
 
   return (
-    <Screen glow="volt">
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 24, gap: 12 }}>
-        <Text className="text-muted text-sm font-body">tap who shared each item · tax &amp; tip split proportionally</Text>
+    <Screen>
+      <ScrollView contentContainerStyle={{ paddingTop: 12, paddingBottom: insets.bottom + 24, paddingHorizontal: 16 }}>
+        <Text className="text-secondaryLabel text-[13px] mb-3">Tap who shared each item · tax &amp; tip split proportionally.</Text>
 
         {receipt.items.map((it, i) => (
-          <Card key={i} className="gap-3">
+          <Card key={i} className="gap-3 mb-3">
             <View className="flex-row items-center">
-              <Text className="flex-1 text-text font-body">
+              <Text className="flex-1 text-label text-[16px]">
                 {it.quantity > 1 ? `${it.quantity}× ` : ''}
                 {it.description}
               </Text>
-              <Text className="text-muted font-mono" style={{ fontVariant: ['tabular-nums'] }}>
+              <Text className="text-secondaryLabel text-[16px]" style={{ fontVariant: ['tabular-nums'] }}>
                 {it.total.toFixed(2)}
               </Text>
             </View>
@@ -159,31 +159,26 @@ export default function Assign() {
           </Card>
         ))}
 
-        <Text className="text-muted text-[11px] uppercase mt-2 font-body-medium" style={{ letterSpacing: 1.4 }}>
-          paid by
-        </Text>
-        <View className="flex-row flex-wrap gap-2">
+        <Text className="text-secondaryLabel text-[13px] mb-2 mt-1">Paid by</Text>
+        <View className="flex-row flex-wrap gap-2 mb-4">
           {members.map((m) => (
             <Chip key={m.id} label={firstName(m)} active={payerId === m.id} onPress={() => setPayerId(m.id)} />
           ))}
         </View>
 
         {preview && (
-          <Card className="gap-2 mt-2">
-            <Text className="text-text font-body-semibold">
-              split · {currency} {(preview.total / 100).toFixed(2)}
-            </Text>
+          <Section header={`Split · ${currency} ${(preview.total / 100).toFixed(2)}`}>
             {preview.perPerson.map((p) => (
-              <View key={p.personId} className="flex-row">
-                <Text className="flex-1 text-text font-body">{nameFor(p.personId)}</Text>
+              <Row key={p.personId}>
+                <Text className="flex-1 text-label text-[17px]">{nameFor(p.personId)}</Text>
                 <Money amount={p.owed / 100} currency={currency} />
-              </View>
+              </Row>
             ))}
-          </Card>
+          </Section>
         )}
 
         {error && <ErrorText>{error}</ErrorText>}
-        <Button label={create.isPending ? 'adding…' : 'add itemized expense'} onPress={push} disabled={create.isPending} />
+        <Button label={create.isPending ? 'Adding…' : 'Add itemized expense'} onPress={push} disabled={create.isPending} />
       </ScrollView>
     </Screen>
   );

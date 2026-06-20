@@ -1,12 +1,11 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/avatar';
 import { Segmented } from '@/components/segmented';
-import { Empty, ErrorText, GlassList, GlassRow, Hero, Loading, Money, Screen } from '@/components/ui';
+import { Chevron, Empty, ErrorText, Hero, Loading, Money, Row, Screen, Section } from '@/components/ui';
 import { avatarUri, displayName, netBalance } from '@/lib/format';
 import { useCurrentUser, useFriends, useGroups } from '@/lib/queries';
 
@@ -24,7 +23,7 @@ export default function Home() {
   const currency = user.data?.default_currency ?? '';
   const overall = (friends.data ?? []).flatMap((f) => f.balance ?? []).reduce((s, b) => s + Number(b.amount), 0);
   const sign = Math.abs(overall) < 0.005 ? 'settled' : overall > 0 ? 'owed' : 'owe';
-  const eyebrow = sign === 'settled' ? "you're all settled up" : sign === 'owed' ? 'you are owed, overall' : 'you owe, overall';
+  const eyebrow = sign === 'settled' ? "You're all settled up" : sign === 'owed' ? 'You are owed, overall' : 'You owe, overall';
 
   const people = [...(friends.data ?? [])]
     .map((f) => ({ f, net: netBalance(f.balance) }))
@@ -38,12 +37,11 @@ export default function Home() {
   const loading = user.isLoading || friends.isLoading || groups.isLoading;
 
   return (
-    <Screen glow={sign === 'owe' ? 'ember' : 'volt'}>
+    <Screen>
       <ScrollView
-        contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom + 150, paddingHorizontal: 20 }}
+        contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom + 120, paddingHorizontal: 16 }}
         refreshControl={
           <RefreshControl
-            tintColor="#B8FF3C"
             refreshing={user.isRefetching || friends.isRefetching || groups.isRefetching}
             onRefresh={() => {
               void user.refetch();
@@ -52,61 +50,58 @@ export default function Home() {
             }}
           />
         }>
-        <Animated.View entering={FadeIn.duration(450)}>
-          <Hero eyebrow={eyebrow} amount={overall} currency={currency} sign={sign} />
-        </Animated.View>
+        <Hero eyebrow={eyebrow} amount={overall} currency={currency} sign={sign} />
 
-        <Animated.View entering={FadeInDown.delay(120).duration(450)}>
+        <View className="mb-5">
           <Segmented<Lens>
             options={[
-              { value: 'people', label: 'people' },
-              { value: 'groups', label: 'groups' },
+              { value: 'people', label: 'People' },
+              { value: 'groups', label: 'Groups' },
             ]}
             value={lens}
             onChange={setLens}
           />
-        </Animated.View>
+        </View>
 
-        <View className="h-4" />
         {loading && <Loading />}
         {err && <ErrorText>{err instanceof Error ? err.message : String(err)}</ErrorText>}
 
-        <Animated.View entering={FadeInDown.delay(180).duration(450)}>
-          {lens === 'people' ? (
-            people.length === 0 && !loading ? (
-              <Empty>no balances — you&apos;re all settled up</Empty>
-            ) : (
-              <GlassList>
-                {people.map(({ f, net }) => (
-                  <GlassRow key={f.id} onPress={() => router.push(`/friend/${f.id}`)}>
-                    <Avatar name={displayName(f)} uri={avatarUri(f)} />
-                    <View className="flex-1">
-                      <Text className="text-text text-base font-display" numberOfLines={1}>
-                        {displayName(f)}
-                      </Text>
-                      <Text className="text-faint text-[11px] font-body">{net.amount > 0 ? 'owes you' : 'you owe'}</Text>
-                    </View>
-                    <Money amount={net.amount} currency={net.currency} />
-                  </GlassRow>
-                ))}
-              </GlassList>
-            )
-          ) : groupRows.length === 0 && !loading ? (
-            <Empty>no groups yet</Empty>
+        {lens === 'people' ? (
+          people.length === 0 && !loading ? (
+            <Empty>No balances — you&apos;re all settled up.</Empty>
           ) : (
-            <GlassList>
-              {groupRows.map(({ g, net }) => (
-                <GlassRow key={g.id} onPress={() => router.push(`/group/${g.id}`)}>
-                  <Avatar name={g.name} />
-                  <Text className="flex-1 text-text text-base font-display" numberOfLines={1}>
-                    {g.name}
-                  </Text>
+            <Section sepInset={64}>
+              {people.map(({ f, net }) => (
+                <Row key={f.id} onPress={() => router.push(`/friend/${f.id}`)}>
+                  <Avatar name={displayName(f)} uri={avatarUri(f)} />
+                  <View className="flex-1">
+                    <Text className="text-label text-[17px]" numberOfLines={1}>
+                      {displayName(f)}
+                    </Text>
+                    <Text className="text-secondaryLabel text-[13px]">{net.amount > 0 ? 'owes you' : 'you owe'}</Text>
+                  </View>
                   <Money amount={net.amount} currency={net.currency} />
-                </GlassRow>
+                  <Chevron />
+                </Row>
               ))}
-            </GlassList>
-          )}
-        </Animated.View>
+            </Section>
+          )
+        ) : groupRows.length === 0 && !loading ? (
+          <Empty>No groups yet.</Empty>
+        ) : (
+          <Section sepInset={64}>
+            {groupRows.map(({ g, net }) => (
+              <Row key={g.id} onPress={() => router.push(`/group/${g.id}`)}>
+                <Avatar name={g.name} />
+                <Text className="flex-1 text-label text-[17px]" numberOfLines={1}>
+                  {g.name}
+                </Text>
+                <Money amount={net.amount} currency={net.currency} />
+                <Chevron />
+              </Row>
+            ))}
+          </Section>
+        )}
       </ScrollView>
     </Screen>
   );

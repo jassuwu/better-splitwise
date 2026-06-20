@@ -1,13 +1,11 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/avatar';
-import { Button, Card, Empty, ErrorText, Hero, Loading, Money, Screen } from '@/components/ui';
+import { Button, Chevron, Empty, ErrorText, Hero, Loading, Money, Row, Screen, Section } from '@/components/ui';
 import { avatarUri, displayName, money, netBalance } from '@/lib/format';
 import { useCurrentUser, useExpenses, useFriends, useGroups } from '@/lib/queries';
-
-const LABEL = 'text-muted text-[11px] uppercase font-body-medium';
 
 export default function FriendDetail() {
   const params = useLocalSearchParams<{ id: string }>();
@@ -23,66 +21,63 @@ export default function FriendDetail() {
   const friend = friends.data?.find((f) => f.id === id) ?? null;
   const net = netBalance(friend?.balance);
   const sign = Math.abs(net.amount) < 0.005 ? 'settled' : net.amount > 0 ? 'owed' : 'owe';
-  const eyebrow = sign === 'settled' ? 'settled up' : sign === 'owed' ? 'owes you' : 'you owe';
+  const eyebrow = sign === 'settled' ? 'Settled up' : sign === 'owed' ? 'Owes you' : 'You owe';
   const groupName = (gid: number) =>
-    groups.data?.find((g) => g.id === gid)?.name ?? (gid === 0 ? 'non-group' : `group ${gid}`);
+    groups.data?.find((g) => g.id === gid)?.name ?? (gid === 0 ? 'Non-group' : `Group ${gid}`);
   const perGroup = (friend?.groups ?? [])
     .map((g) => ({ gid: g.group_id, net: netBalance(g.balance) }))
     .filter((x) => Math.abs(x.net.amount) > 0.005);
+  const shared = (expenses.data ?? []).filter((e) => !e.deleted_at);
 
   return (
-    <Screen glow={sign === 'owe' ? 'ember' : 'volt'}>
+    <Screen>
       <Stack.Screen options={{ title: friend ? displayName(friend) : '' }} />
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 24, gap: 12 }}>
-        <View className="items-center mt-1">{friend && <Avatar name={displayName(friend)} uri={avatarUri(friend)} size={64} />}</View>
+      <ScrollView contentContainerStyle={{ paddingTop: 12, paddingBottom: insets.bottom + 24, paddingHorizontal: 16 }}>
+        <View className="items-center mt-1">{friend && <Avatar name={displayName(friend)} uri={avatarUri(friend)} size={72} />}</View>
         <Hero eyebrow={eyebrow} amount={net.amount} currency={net.currency} sign={sign} />
-
-        <Button label="settle up" onPress={() => router.push(`/settle?friendId=${id}`)} />
+        <View className="mb-6">
+          <Button label="Settle up" onPress={() => router.push(`/settle?friendId=${id}`)} />
+        </View>
 
         {perGroup.length > 0 && (
-          <Card className="gap-3">
-            <Text className={LABEL} style={{ letterSpacing: 1.4 }}>
-              by group
-            </Text>
+          <Section header="By group">
             {perGroup.map(({ gid, net: gn }) => (
-              <View key={gid} className="flex-row items-center gap-2">
-                <Text className="flex-1 text-text font-body" numberOfLines={1}>
+              <Row key={gid} onPress={gid !== 0 ? () => router.push(`/settle?groupId=${gid}&friendId=${id}`) : undefined}>
+                <Text className="flex-1 text-label text-[17px]" numberOfLines={1}>
                   {groupName(gid)}
                 </Text>
                 <Money amount={gn.amount} currency={gn.currency} />
-                {gid !== 0 && (
-                  <Pressable onPress={() => router.push(`/settle?groupId=${gid}&friendId=${id}`)} className="active:opacity-70 pl-1">
-                    <Text className="text-volt text-xs font-body-medium">settle</Text>
-                  </Pressable>
-                )}
-              </View>
+                {gid !== 0 ? <Chevron /> : null}
+              </Row>
             ))}
-          </Card>
+          </Section>
         )}
 
-        <Text className={`${LABEL} mt-2`} style={{ letterSpacing: 1.4 }}>
-          expenses
-        </Text>
         {expenses.isLoading && <Loading />}
         {expenses.error && <ErrorText>{String(expenses.error)}</ErrorText>}
-        {expenses.data && expenses.data.filter((e) => !e.deleted_at).length === 0 && <Empty>no shared expenses</Empty>}
-        {(expenses.data ?? [])
-          .filter((e) => !e.deleted_at)
-          .map((e) => {
-            const mine = e.users.find((u) => (u.user_id ?? u.user?.id) === me);
-            const myNet = mine ? Number(mine.paid_share) - Number(mine.owed_share) : 0;
-            return (
-              <Pressable key={e.id} onPress={() => router.push(`/expense/${e.id}`)}>
-                <Card className="flex-row items-center gap-2">
+        {shared.length === 0 && !expenses.isLoading ? <Empty>No shared expenses.</Empty> : null}
+        {shared.length > 0 && (
+          <Section header="Expenses">
+            {shared.map((e) => {
+              const mine = e.users.find((u) => (u.user_id ?? u.user?.id) === me);
+              const myNet = mine ? Number(mine.paid_share) - Number(mine.owed_share) : 0;
+              return (
+                <Row key={e.id} onPress={() => router.push(`/expense/${e.id}`)}>
                   <View className="flex-1">
-                    <Text className="text-text font-body">{e.payment ? 'settlement' : e.description}</Text>
-                    <Text className="text-faint text-xs font-mono">{money(Number(e.cost), e.currency_code)}</Text>
+                    <Text className="text-label text-[17px]" numberOfLines={1}>
+                      {e.payment ? 'Settlement' : e.description}
+                    </Text>
+                    <Text className="text-secondaryLabel text-[13px]" style={{ fontVariant: ['tabular-nums'] }}>
+                      {money(Number(e.cost), e.currency_code)}
+                    </Text>
                   </View>
                   {!e.payment && <Money amount={myNet} currency={e.currency_code} />}
-                </Card>
-              </Pressable>
-            );
-          })}
+                  <Chevron />
+                </Row>
+              );
+            })}
+          </Section>
+        )}
       </ScrollView>
     </Screen>
   );

@@ -33,37 +33,41 @@ export default function You() {
   }
 
   return (
-    <Screen glow="none">
-      <ScrollView contentContainerStyle={{ paddingTop: insets.top + 16, paddingBottom: insets.bottom + 150, paddingHorizontal: 20 }}>
-        <View className="items-center mt-2 mb-7">
-          {user.data && <Avatar name={displayName(user.data)} uri={avatarUri(user.data)} size={92} />}
-          {user.data && <Text className="text-text text-xl font-display mt-3">{displayName(user.data)}</Text>}
-          {user.data?.email ? <Text className="text-muted text-sm mt-0.5 font-body">{user.data.email}</Text> : null}
+    <Screen>
+      <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: insets.bottom + 120, paddingHorizontal: 16 }}>
+        <Text className="text-label" style={{ fontSize: 28, fontWeight: '700', marginBottom: 16 }}>
+          You
+        </Text>
+
+        <View className="items-center mb-7">
+          {user.data && <Avatar name={displayName(user.data)} uri={avatarUri(user.data)} size={80} />}
+          {user.data && (
+            <Text className="text-label mt-3" style={{ fontSize: 20, fontWeight: '600' }}>
+              {displayName(user.data)}
+            </Text>
+          )}
+          {user.data?.email ? <Text className="text-secondaryLabel text-[15px] mt-0.5">{user.data.email}</Text> : null}
           {user.data?.default_currency ? (
-            <Text className="text-faint text-xs mt-1 font-body">default currency · {user.data.default_currency}</Text>
+            <Text className="text-tertiaryLabel text-[13px] mt-1">Default currency · {user.data.default_currency}</Text>
           ) : null}
         </View>
 
-        <Text className="text-muted text-[11px] uppercase mb-2 font-body-medium" style={{ letterSpacing: 1.4 }}>
-          splitwise
-        </Text>
-        <Card className="gap-3">
+        <Text className="text-secondaryLabel text-[13px] px-1 mb-2">Splitwise</Text>
+        <Card className="gap-3 mb-6">
           <SecretInput value={swKey} onChangeText={setSwKey} placeholder="splitwise api key" />
-          <Button label="update key" onPress={() => void setApiKey(swKey.trim())} />
+          <Button label="Update key" onPress={() => void setApiKey(swKey.trim())} />
         </Card>
 
-        <Text className="text-muted text-[11px] uppercase mb-2 mt-6 font-body-medium" style={{ letterSpacing: 1.4 }}>
-          receipt scanning · gemini
-        </Text>
-        <Card className="gap-3">
+        <Text className="text-secondaryLabel text-[13px] px-1 mb-2">Receipt scanning · Gemini</Text>
+        <Card className="gap-3 mb-6">
           <SecretInput value={gemKey} onChangeText={setGemKey} placeholder="gemini api key" />
           <View className="flex-row gap-3">
             <View className="flex-1">
-              <Button label="save key" onPress={() => void setGeminiKey(gemKey.trim())} disabled={!gemKey.trim()} />
+              <Button label="Save key" onPress={() => void setGeminiKey(gemKey.trim())} disabled={!gemKey.trim()} />
             </View>
             <View className="flex-1">
               <Button
-                label="clear"
+                label="Clear"
                 variant="ghost"
                 onPress={() => {
                   setGemKey('');
@@ -74,15 +78,14 @@ export default function You() {
           </View>
         </Card>
 
-        <View className="h-7" />
-        <Button label="sign out" variant="danger" onPress={signOut} />
+        <Button label="Sign out" variant="danger" onPress={signOut} />
 
-        <View className="items-center mt-12 gap-1.5">
-          <Wordmark className="text-lg" />
-          <Text className="text-faint text-xs font-body">faster splitwise · keep the account, lose the app</Text>
-          <Text className="text-faint text-xs font-body">
-            made by{' '}
-            <Text className="text-volt" onPress={() => void Linking.openURL('https://jass.gg')}>
+        <View className="items-center mt-10 gap-1.5">
+          <Wordmark className="text-[17px]" />
+          <Text className="text-tertiaryLabel text-[13px]">A faster Splitwise · keep the account, lose the app</Text>
+          <Text className="text-tertiaryLabel text-[13px]">
+            Made by{' '}
+            <Text className="text-tint" onPress={() => void Linking.openURL('https://jass.gg')}>
               jass
             </Text>
           </Text>

@@ -9,8 +9,6 @@ import { Button, Chip, ErrorText, Screen } from '@/components/ui';
 import { firstName } from '@/lib/format';
 import { useCreateExpense, useCurrentUser, useGroups } from '@/lib/queries';
 
-const LABEL = 'text-muted text-[11px] uppercase font-body-medium';
-
 export default function Settle() {
   const params = useLocalSearchParams<{ groupId?: string; friendId?: string }>();
   const insets = useSafeAreaInsets();
@@ -45,18 +43,18 @@ export default function Settle() {
   function record() {
     setError(null);
     if (!group || from === null || to === null) {
-      setError('pick who paid whom');
+      setError('Pick who paid whom');
       return;
     }
     if (from === to) {
-      setError('payer and payee must differ');
+      setError('Payer and payee must differ');
       return;
     }
     let cents: number;
     try {
       cents = toCents(amount);
     } catch {
-      setError('enter a valid amount');
+      setError('Enter a valid amount');
       return;
     }
     const userIds = { [String(from)]: from, [String(to)]: to };
@@ -81,12 +79,10 @@ export default function Settle() {
   }
 
   return (
-    <Screen glow="volt">
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 24, gap: 18 }}>
+    <Screen>
+      <ScrollView contentContainerStyle={{ paddingTop: 12, paddingBottom: insets.bottom + 24, paddingHorizontal: 16, gap: 18 }}>
         <View className="gap-2">
-          <Text className={LABEL} style={{ letterSpacing: 1.4 }}>
-            group
-          </Text>
+          <Text className="text-secondaryLabel text-[13px] px-1">Group</Text>
           <View className="flex-row flex-wrap gap-2">
             {(groups.data ?? []).map((g) => (
               <Chip key={g.id} label={g.name} active={groupId === g.id} onPress={() => setGroupId(g.id)} />
@@ -97,9 +93,7 @@ export default function Settle() {
         {group && (
           <>
             <View className="gap-2">
-              <Text className={LABEL} style={{ letterSpacing: 1.4 }}>
-                from (paid)
-              </Text>
+              <Text className="text-secondaryLabel text-[13px] px-1">From (paid)</Text>
               <View className="flex-row flex-wrap gap-2">
                 {members.map((m) => (
                   <Chip key={m.id} label={firstName(m)} active={from === m.id} onPress={() => setFrom(m.id)} />
@@ -107,9 +101,7 @@ export default function Settle() {
               </View>
             </View>
             <View className="gap-2">
-              <Text className={LABEL} style={{ letterSpacing: 1.4 }}>
-                to
-              </Text>
+              <Text className="text-secondaryLabel text-[13px] px-1">To</Text>
               <View className="flex-row flex-wrap gap-2">
                 {members.map((m) => (
                   <Chip key={m.id} label={firstName(m)} active={to === m.id} onPress={() => setTo(m.id)} />
@@ -120,10 +112,10 @@ export default function Settle() {
               <TextInput
                 value={amount}
                 onChangeText={setAmount}
-                placeholder="amount"
-                placeholderTextColor="#5B616C"
+                placeholder="Amount"
+                placeholderTextColor="rgba(235,235,245,0.3)"
                 keyboardType="decimal-pad"
-                className="flex-1 bg-surface2 rounded-2xl px-4 py-3.5 text-text font-mono border border-hairline"
+                className="flex-1 bg-cell2 rounded-2xl px-4 py-3.5 text-label text-[17px]"
                 style={{ fontVariant: ['tabular-nums'] }}
               />
               <TextInput
@@ -132,14 +124,14 @@ export default function Settle() {
                 autoCapitalize="characters"
                 autoCorrect={false}
                 maxLength={3}
-                className="w-20 bg-surface2 rounded-2xl px-4 py-3.5 text-text text-center font-mono border border-hairline"
+                className="w-20 bg-cell2 rounded-2xl px-4 py-3.5 text-label text-center text-[17px]"
               />
             </View>
           </>
         )}
 
         {error && <ErrorText>{error}</ErrorText>}
-        <Button label={create.isPending ? 'recording…' : 'record payment'} onPress={record} disabled={create.isPending} />
+        <Button label={create.isPending ? 'Recording…' : 'Record payment'} onPress={record} disabled={create.isPending} />
       </ScrollView>
     </Screen>
   );

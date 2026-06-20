@@ -3,7 +3,7 @@ import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/avatar';
-import { Button, Card, ErrorText, Loading, Screen } from '@/components/ui';
+import { Button, ErrorText, Loading, Row, Screen, Section } from '@/components/ui';
 import { avatarUri, displayName, money } from '@/lib/format';
 import { useComments, useDeleteExpense, useExpense } from '@/lib/queries';
 
@@ -21,7 +21,6 @@ function nameOf(u: Share): string {
   return u.user ? displayName(u.user) : `user ${u.user_id ?? '?'}`;
 }
 
-const LABEL = 'text-muted text-[11px] uppercase font-body-medium';
 const MONO = { fontVariant: ['tabular-nums' as const] };
 
 export default function ExpenseDetail() {
@@ -41,78 +40,69 @@ export default function ExpenseDetail() {
   }
 
   return (
-    <Screen glow="none">
-      <Stack.Screen options={{ title: e?.payment ? 'settlement' : 'expense' }} />
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 24, gap: 12 }}>
+    <Screen>
+      <Stack.Screen options={{ title: e?.payment ? 'Settlement' : 'Expense' }} />
+      <ScrollView contentContainerStyle={{ paddingTop: 12, paddingBottom: insets.bottom + 24, paddingHorizontal: 16 }}>
         {expense.isLoading && <Loading />}
         {expense.error && <ErrorText>{String(expense.error)}</ErrorText>}
         {e && (
           <>
-            <View className="items-center py-3">
-              <Text className={`${LABEL} mb-2`} style={{ letterSpacing: 1.4 }} numberOfLines={1}>
-                {e.payment ? 'settlement' : e.description}
+            <View className="items-center py-4">
+              <Text className="text-secondaryLabel text-[13px] mb-2" numberOfLines={1}>
+                {e.payment ? 'Settlement' : e.description}
               </Text>
-              <Text className="text-text font-mono text-5xl" style={{ ...MONO, letterSpacing: -1 }}>
+              <Text className="text-label" style={{ fontSize: 48, fontWeight: '700', ...MONO }}>
                 {money(Number(e.cost), e.currency_code)}
               </Text>
-              {e.date ? <Text className="text-faint text-xs mt-2 font-body">{new Date(e.date).toLocaleDateString()}</Text> : null}
+              {e.date ? <Text className="text-tertiaryLabel text-[13px] mt-2">{new Date(e.date).toLocaleDateString()}</Text> : null}
             </View>
 
-            <Card className="gap-2">
-              <Text className={LABEL} style={{ letterSpacing: 1.4 }}>
-                paid by
-              </Text>
+            <Section header="Paid by" sepInset={56}>
               {payers.map((u, i) => (
-                <View key={i} className="flex-row items-center gap-3">
-                  <Avatar name={nameOf(u)} uri={u.user ? avatarUri(u.user) : null} size={30} />
-                  <Text className="flex-1 text-text font-body">{nameOf(u)}</Text>
-                  <Text className="text-text font-mono" style={MONO}>
+                <Row key={i}>
+                  <Avatar name={nameOf(u)} uri={u.user ? avatarUri(u.user) : null} size={28} />
+                  <Text className="flex-1 text-label text-[17px]">{nameOf(u)}</Text>
+                  <Text className="text-label text-[17px]" style={MONO}>
                     {money(Number(u.paid_share), e.currency_code)}
                   </Text>
-                </View>
+                </Row>
               ))}
-            </Card>
+            </Section>
 
-            <Card className="gap-2">
-              <Text className={LABEL} style={{ letterSpacing: 1.4 }}>
-                shares
-              </Text>
+            <Section header="Shares" sepInset={56}>
               {e.users.map((u, i) => (
-                <View key={i} className="flex-row items-center gap-3">
-                  <Avatar name={nameOf(u)} uri={u.user ? avatarUri(u.user) : null} size={30} />
-                  <Text className="flex-1 text-text font-body">{nameOf(u)}</Text>
-                  <Text className="text-text font-mono" style={MONO}>
+                <Row key={i}>
+                  <Avatar name={nameOf(u)} uri={u.user ? avatarUri(u.user) : null} size={28} />
+                  <Text className="flex-1 text-label text-[17px]">{nameOf(u)}</Text>
+                  <Text className="text-label text-[17px]" style={MONO}>
                     {money(Number(u.owed_share), e.currency_code)}
                   </Text>
-                </View>
+                </Row>
               ))}
-            </Card>
+            </Section>
 
             {e.details ? (
-              <Card className="gap-1">
-                <Text className={LABEL} style={{ letterSpacing: 1.4 }}>
-                  notes
-                </Text>
-                <Text className="text-text font-body">{e.details}</Text>
-              </Card>
+              <Section header="Notes">
+                <Row>
+                  <Text className="text-label text-[15px]">{e.details}</Text>
+                </Row>
+              </Section>
             ) : null}
 
             {(comments.data ?? []).length > 0 && (
-              <Card className="gap-2">
-                <Text className={LABEL} style={{ letterSpacing: 1.4 }}>
-                  comments
-                </Text>
+              <Section header="Comments">
                 {(comments.data ?? []).map((c) => (
-                  <Text key={c.id} className="text-text text-sm font-body">
-                    {c.user ? `${displayName(c.user)}: ` : ''}
-                    {c.content}
-                  </Text>
+                  <Row key={c.id}>
+                    <Text className="text-label text-[15px]">
+                      {c.user ? `${displayName(c.user)}: ` : ''}
+                      {c.content}
+                    </Text>
+                  </Row>
                 ))}
-              </Card>
+              </Section>
             )}
 
-            <View className="h-2" />
-            <Button label={del.isPending ? 'deleting…' : 'delete'} variant="danger" onPress={onDelete} disabled={del.isPending} />
+            <Button label={del.isPending ? 'Deleting…' : 'Delete'} variant="danger" onPress={onDelete} disabled={del.isPending} />
           </>
         )}
       </ScrollView>

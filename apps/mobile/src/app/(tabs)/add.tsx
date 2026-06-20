@@ -11,8 +11,6 @@ import { setPendingReceipt } from '@/lib/pending-receipt';
 import { useCreateExpense, useCurrentUser, useGroups } from '@/lib/queries';
 import { scanReceipt } from '@/lib/scan';
 
-const LABEL = 'text-muted text-[11px] uppercase font-body-medium';
-
 export default function Add() {
   const params = useLocalSearchParams<{ groupId?: string }>();
   const insets = useSafeAreaInsets();
@@ -30,6 +28,7 @@ export default function Add() {
   const [scanning, setScanning] = useState(false);
   const [scanned, setScanned] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState<number | null>(null);
 
   const me = user.data?.id ?? null;
   const group = useMemo(() => groups.data?.find((g) => g.id === groupId) ?? null, [groups.data, groupId]);
@@ -77,20 +76,21 @@ export default function Add() {
 
   function push() {
     setError(null);
+    setDone(null);
     if (!group || payerId === null) {
-      setError('pick a group');
+      setError('Pick a group');
       return;
     }
     const people = members.filter((m) => included.has(m.id)).map((m) => String(m.id));
     if (people.length === 0) {
-      setError('select at least one person');
+      setError('Select at least one person');
       return;
     }
     let cents: number;
     try {
       cents = toCents(amount);
     } catch {
-      setError('enter a valid amount');
+      setError('Enter a valid amount');
       return;
     }
     const userIds = Object.fromEntries(members.map((m) => [String(m.id), m.id] as const));
@@ -109,54 +109,64 @@ export default function Add() {
           currencyCode: currency,
         }),
       },
-      { onSuccess: () => router.back(), onError: (e) => setError(e instanceof Error ? e.message : String(e)) },
+      {
+        onSuccess: (expense) => {
+          setAmount('');
+          setDescription('');
+          setScanned(false);
+          setDone(expense.id);
+        },
+        onError: (e) => setError(e instanceof Error ? e.message : String(e)),
+      },
     );
   }
 
   return (
-    <Screen glow="volt">
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 24, gap: 18 }}>
-        <View className="items-center mt-3 flex-row justify-center">
+    <Screen>
+      <ScrollView contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: insets.bottom + 110, paddingHorizontal: 16, gap: 18 }}>
+        <Text className="text-label" style={{ fontSize: 28, fontWeight: '700' }}>
+          Add expense
+        </Text>
+
+        <View className="items-center flex-row justify-center mt-1">
           <TextInput
             value={currency}
             onChangeText={setCurrency}
             autoCapitalize="characters"
             autoCorrect={false}
             maxLength={3}
-            placeholderTextColor="#5B616C"
-            className="text-faint font-mono text-xl mr-2"
-            style={{ minWidth: 36, textAlign: 'right' }}
+            placeholderTextColor="rgba(235,235,245,0.3)"
+            className="text-secondaryLabel mr-2"
+            style={{ fontSize: 22, fontWeight: '600', minWidth: 36, textAlign: 'right' }}
           />
           <TextInput
             value={amount}
             onChangeText={setAmount}
             placeholder="0.00"
-            placeholderTextColor="#2A2F38"
+            placeholderTextColor="rgba(235,235,245,0.3)"
             keyboardType="decimal-pad"
-            className="text-text font-mono text-6xl"
-            style={{ fontVariant: ['tabular-nums'], letterSpacing: -1.5 }}
+            className="text-label"
+            style={{ fontSize: 48, fontWeight: '700', fontVariant: ['tabular-nums'] }}
           />
         </View>
 
         <TextInput
           value={description}
           onChangeText={setDescription}
-          placeholder="what for?"
-          placeholderTextColor="#5B616C"
-          className="bg-surface2 rounded-2xl px-4 py-3.5 text-text text-center font-body border border-hairline"
+          placeholder="What for?"
+          placeholderTextColor="rgba(235,235,245,0.3)"
+          className="bg-cell2 rounded-2xl px-4 py-3.5 text-label text-center text-[17px]"
         />
 
         <Pressable
           onPress={onScan}
           disabled={scanning}
-          className="flex-row items-center justify-center gap-2 border border-volt/40 rounded-2xl py-3.5 active:opacity-70">
-          {scanning ? <ActivityIndicator color="#B8FF3C" /> : <Text className="text-volt font-body-medium">＋ scan a receipt</Text>}
+          className="flex-row items-center justify-center gap-2 border border-separator rounded-2xl py-3.5 active:opacity-60">
+          {scanning ? <ActivityIndicator /> : <Text className="text-tint text-[16px]">Scan a receipt</Text>}
         </Pressable>
 
         <View className="gap-2">
-          <Text className={LABEL} style={{ letterSpacing: 1.4 }}>
-            group
-          </Text>
+          <Text className="text-secondaryLabel text-[13px] px-1">Group</Text>
           <View className="flex-row flex-wrap gap-2">
             {(groups.data ?? []).map((g) => (
               <Chip key={g.id} label={g.name} active={groupId === g.id} onPress={() => setGroupId(g.id)} />
@@ -167,9 +177,7 @@ export default function Add() {
         {group && (
           <>
             <View className="gap-2">
-              <Text className={LABEL} style={{ letterSpacing: 1.4 }}>
-                split between
-              </Text>
+              <Text className="text-secondaryLabel text-[13px] px-1">Split between</Text>
               <View className="flex-row flex-wrap gap-2">
                 {members.map((m) => (
                   <Chip key={m.id} label={firstName(m)} active={included.has(m.id)} onPress={() => toggle(m.id)} />
@@ -177,9 +185,7 @@ export default function Add() {
               </View>
             </View>
             <View className="gap-2">
-              <Text className={LABEL} style={{ letterSpacing: 1.4 }}>
-                paid by
-              </Text>
+              <Text className="text-secondaryLabel text-[13px] px-1">Paid by</Text>
               <View className="flex-row flex-wrap gap-2">
                 {members
                   .filter((m) => included.has(m.id))
@@ -188,16 +194,17 @@ export default function Add() {
                   ))}
               </View>
             </View>
-            {scanned && (
-              <Pressable onPress={() => router.push(`/assign?groupId=${group.id}`)} className="active:opacity-70">
-                <Text className="text-volt text-center font-body-medium">split by item instead →</Text>
-              </Pressable>
-            )}
           </>
         )}
 
+        {scanned && group ? (
+          <Pressable onPress={() => router.push(`/assign?groupId=${group.id}`)} className="active:opacity-60">
+            <Text className="text-tint text-center text-[15px]">Split by item instead</Text>
+          </Pressable>
+        ) : null}
         {error && <ErrorText>{error}</ErrorText>}
-        <Button label={create.isPending ? 'adding…' : 'add expense'} onPress={push} disabled={create.isPending} />
+        {done ? <Text className="text-green text-[15px] text-center">Added · expense #{done}</Text> : null}
+        <Button label={create.isPending ? 'Adding…' : 'Add expense'} onPress={push} disabled={create.isPending} />
       </ScrollView>
     </Screen>
   );
