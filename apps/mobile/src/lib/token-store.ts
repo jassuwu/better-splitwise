@@ -40,3 +40,11 @@ export const clearApiKey = () => clearKey(SPLITWISE_KEY);
 export const getGeminiKey = () => getKey(GEMINI_KEY);
 export const setGeminiKey = (value: string) => setKey(GEMINI_KEY, value);
 export const clearGeminiKey = () => clearKey(GEMINI_KEY);
+
+// last-used group, so the Add flow defaults to where you usually add expenses
+const LAST_GROUP_KEY = 'last_group_id';
+export const getLastGroupId = async (): Promise<number | null> => {
+  const v = await getKey(LAST_GROUP_KEY);
+  return v ? Number(v) : null;
+};
+export const setLastGroupId = (id: number) => setKey(LAST_GROUP_KEY, String(id));
