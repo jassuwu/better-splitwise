@@ -19,7 +19,8 @@ export interface SplitwiseUser {
   email?: string | null;
   default_currency?: string | null;
   balance?: Balance[];
-  picture?: { medium?: string | null } | null;
+  groups?: { group_id: number; balance: Balance[] }[];
+  picture?: { small?: string | null; medium?: string | null; large?: string | null } | null;
 }
 
 export interface Group {
