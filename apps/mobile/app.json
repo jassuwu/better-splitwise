@@ -8,7 +8,7 @@
     "scheme": "bettersplitwise",
     "userInterfaceStyle": "dark",
     "ios": {
-      "bundleIdentifier": "com.anonymous.better-splitwise"
+      "bundleIdentifier": "gg.jass.bettersplitwise"
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +18,8 @@
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "android.permission.RECORD_AUDIO"
-      ]
+      ],
+      "package": "com.anonymous.bettersplitwise"
     },
     "web": {
       "output": "static",
