@@ -40,9 +40,9 @@ export default function Assign() {
 
   if (!receipt) {
     return (
-      <Screen>
+      <Screen glow="volt">
         <ScrollView contentContainerStyle={{ padding: 20 }}>
-          <Empty>no scanned receipt — scan one from Add first</Empty>
+          <Empty>no scanned receipt — scan one from add first</Empty>
         </ScrollView>
       </Screen>
     );
@@ -136,18 +136,20 @@ export default function Assign() {
   }
 
   return (
-    <Screen>
+    <Screen glow="volt">
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 24, gap: 12 }}>
-        <Text className="text-muted text-sm">tap who shared each item · tax &amp; tip split proportionally</Text>
+        <Text className="text-muted text-sm font-body">tap who shared each item · tax &amp; tip split proportionally</Text>
 
         {receipt.items.map((it, i) => (
           <Card key={i} className="gap-3">
             <View className="flex-row items-center">
-              <Text className="flex-1 text-white">
+              <Text className="flex-1 text-text font-body">
                 {it.quantity > 1 ? `${it.quantity}× ` : ''}
                 {it.description}
               </Text>
-              <Text className="text-muted">{it.total.toFixed(2)}</Text>
+              <Text className="text-muted font-mono" style={{ fontVariant: ['tabular-nums'] }}>
+                {it.total.toFixed(2)}
+              </Text>
             </View>
             <View className="flex-row flex-wrap gap-2">
               {members.map((m) => (
@@ -157,7 +159,9 @@ export default function Assign() {
           </Card>
         ))}
 
-        <Text className="text-muted text-xs uppercase tracking-wide mt-2">paid by</Text>
+        <Text className="text-muted text-[11px] uppercase mt-2 font-body-medium" style={{ letterSpacing: 1.4 }}>
+          paid by
+        </Text>
         <View className="flex-row flex-wrap gap-2">
           {members.map((m) => (
             <Chip key={m.id} label={firstName(m)} active={payerId === m.id} onPress={() => setPayerId(m.id)} />
@@ -166,12 +170,12 @@ export default function Assign() {
 
         {preview && (
           <Card className="gap-2 mt-2">
-            <Text className="text-white font-semibold">
+            <Text className="text-text font-body-semibold">
               split · {currency} {(preview.total / 100).toFixed(2)}
             </Text>
             {preview.perPerson.map((p) => (
               <View key={p.personId} className="flex-row">
-                <Text className="flex-1 text-white">{nameFor(p.personId)}</Text>
+                <Text className="flex-1 text-text font-body">{nameFor(p.personId)}</Text>
                 <Money amount={p.owed / 100} currency={currency} />
               </View>
             ))}
@@ -179,7 +183,7 @@ export default function Assign() {
         )}
 
         {error && <ErrorText>{error}</ErrorText>}
-        <Button label={create.isPending ? 'adding…' : 'Add itemized expense'} onPress={push} disabled={create.isPending} />
+        <Button label={create.isPending ? 'adding…' : 'add itemized expense'} onPress={push} disabled={create.isPending} />
       </ScrollView>
     </Screen>
   );

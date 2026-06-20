@@ -11,6 +11,8 @@ import { setPendingReceipt } from '@/lib/pending-receipt';
 import { useCreateExpense, useCurrentUser, useGroups } from '@/lib/queries';
 import { scanReceipt } from '@/lib/scan';
 
+const LABEL = 'text-muted text-[11px] uppercase font-body-medium';
+
 export default function Add() {
   const params = useLocalSearchParams<{ groupId?: string }>();
   const insets = useSafeAreaInsets();
@@ -107,32 +109,32 @@ export default function Add() {
           currencyCode: currency,
         }),
       },
-      {
-        onSuccess: () => router.back(),
-        onError: (e) => setError(e instanceof Error ? e.message : String(e)),
-      },
+      { onSuccess: () => router.back(), onError: (e) => setError(e instanceof Error ? e.message : String(e)) },
     );
   }
 
   return (
-    <Screen>
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 24, gap: 16 }}>
-        <View className="items-center mt-2 flex-row justify-center">
+    <Screen glow="volt">
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 24, gap: 18 }}>
+        <View className="items-center mt-3 flex-row justify-center">
           <TextInput
             value={currency}
             onChangeText={setCurrency}
             autoCapitalize="characters"
             autoCorrect={false}
             maxLength={3}
-            className="text-muted text-xl w-12 text-right mr-2"
+            placeholderTextColor="#5B616C"
+            className="text-faint font-mono text-xl mr-2"
+            style={{ minWidth: 36, textAlign: 'right' }}
           />
           <TextInput
             value={amount}
             onChangeText={setAmount}
             placeholder="0.00"
-            placeholderTextColor="#3a3f4a"
+            placeholderTextColor="#2A2F38"
             keyboardType="decimal-pad"
-            className="text-white text-5xl font-extrabold"
+            className="text-text font-mono text-6xl"
+            style={{ fontVariant: ['tabular-nums'], letterSpacing: -1.5 }}
           />
         </View>
 
@@ -140,19 +142,21 @@ export default function Add() {
           value={description}
           onChangeText={setDescription}
           placeholder="what for?"
-          placeholderTextColor="#8b929e"
-          className="bg-surface2 rounded-2xl px-4 py-3.5 text-white text-center"
+          placeholderTextColor="#5B616C"
+          className="bg-surface2 rounded-2xl px-4 py-3.5 text-text text-center font-body border border-hairline"
         />
 
         <Pressable
           onPress={onScan}
           disabled={scanning}
-          className="flex-row items-center justify-center gap-2 border border-hairline rounded-2xl py-3.5 active:opacity-70">
-          {scanning ? <ActivityIndicator color="#7c5cff" /> : <Text className="text-brand-soft font-medium">＋ scan a receipt</Text>}
+          className="flex-row items-center justify-center gap-2 border border-volt/40 rounded-2xl py-3.5 active:opacity-70">
+          {scanning ? <ActivityIndicator color="#B8FF3C" /> : <Text className="text-volt font-body-medium">＋ scan a receipt</Text>}
         </Pressable>
 
         <View className="gap-2">
-          <Text className="text-muted text-xs uppercase tracking-wide">group</Text>
+          <Text className={LABEL} style={{ letterSpacing: 1.4 }}>
+            group
+          </Text>
           <View className="flex-row flex-wrap gap-2">
             {(groups.data ?? []).map((g) => (
               <Chip key={g.id} label={g.name} active={groupId === g.id} onPress={() => setGroupId(g.id)} />
@@ -163,7 +167,9 @@ export default function Add() {
         {group && (
           <>
             <View className="gap-2">
-              <Text className="text-muted text-xs uppercase tracking-wide">split between</Text>
+              <Text className={LABEL} style={{ letterSpacing: 1.4 }}>
+                split between
+              </Text>
               <View className="flex-row flex-wrap gap-2">
                 {members.map((m) => (
                   <Chip key={m.id} label={firstName(m)} active={included.has(m.id)} onPress={() => toggle(m.id)} />
@@ -171,7 +177,9 @@ export default function Add() {
               </View>
             </View>
             <View className="gap-2">
-              <Text className="text-muted text-xs uppercase tracking-wide">paid by</Text>
+              <Text className={LABEL} style={{ letterSpacing: 1.4 }}>
+                paid by
+              </Text>
               <View className="flex-row flex-wrap gap-2">
                 {members
                   .filter((m) => included.has(m.id))
@@ -182,14 +190,14 @@ export default function Add() {
             </View>
             {scanned && (
               <Pressable onPress={() => router.push(`/assign?groupId=${group.id}`)} className="active:opacity-70">
-                <Text className="text-brand-soft text-center font-medium">split by item instead →</Text>
+                <Text className="text-volt text-center font-body-medium">split by item instead →</Text>
               </Pressable>
             )}
           </>
         )}
 
         {error && <ErrorText>{error}</ErrorText>}
-        <Button label={create.isPending ? 'adding…' : 'Add expense'} onPress={push} disabled={create.isPending} />
+        <Button label={create.isPending ? 'adding…' : 'add expense'} onPress={push} disabled={create.isPending} />
       </ScrollView>
     </Screen>
   );

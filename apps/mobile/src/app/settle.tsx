@@ -9,6 +9,8 @@ import { Button, Chip, ErrorText, Screen } from '@/components/ui';
 import { firstName } from '@/lib/format';
 import { useCreateExpense, useCurrentUser, useGroups } from '@/lib/queries';
 
+const LABEL = 'text-muted text-[11px] uppercase font-body-medium';
+
 export default function Settle() {
   const params = useLocalSearchParams<{ groupId?: string; friendId?: string }>();
   const insets = useSafeAreaInsets();
@@ -36,11 +38,7 @@ export default function Settle() {
   useEffect(() => {
     if (group) {
       setFrom(group.members.find((m) => m.id === me)?.id ?? group.members[0]?.id ?? null);
-      setTo(
-        group.members.find((m) => m.id === friendId)?.id ??
-          group.members.find((m) => m.id !== me)?.id ??
-          null,
-      );
+      setTo(group.members.find((m) => m.id === friendId)?.id ?? group.members.find((m) => m.id !== me)?.id ?? null);
     }
   }, [group, me, friendId]);
 
@@ -83,10 +81,12 @@ export default function Settle() {
   }
 
   return (
-    <Screen>
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 24, gap: 16 }}>
+    <Screen glow="volt">
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 24, gap: 18 }}>
         <View className="gap-2">
-          <Text className="text-muted text-xs uppercase tracking-wide">group</Text>
+          <Text className={LABEL} style={{ letterSpacing: 1.4 }}>
+            group
+          </Text>
           <View className="flex-row flex-wrap gap-2">
             {(groups.data ?? []).map((g) => (
               <Chip key={g.id} label={g.name} active={groupId === g.id} onPress={() => setGroupId(g.id)} />
@@ -97,7 +97,9 @@ export default function Settle() {
         {group && (
           <>
             <View className="gap-2">
-              <Text className="text-muted text-xs uppercase tracking-wide">from (paid)</Text>
+              <Text className={LABEL} style={{ letterSpacing: 1.4 }}>
+                from (paid)
+              </Text>
               <View className="flex-row flex-wrap gap-2">
                 {members.map((m) => (
                   <Chip key={m.id} label={firstName(m)} active={from === m.id} onPress={() => setFrom(m.id)} />
@@ -105,7 +107,9 @@ export default function Settle() {
               </View>
             </View>
             <View className="gap-2">
-              <Text className="text-muted text-xs uppercase tracking-wide">to</Text>
+              <Text className={LABEL} style={{ letterSpacing: 1.4 }}>
+                to
+              </Text>
               <View className="flex-row flex-wrap gap-2">
                 {members.map((m) => (
                   <Chip key={m.id} label={firstName(m)} active={to === m.id} onPress={() => setTo(m.id)} />
@@ -117,9 +121,10 @@ export default function Settle() {
                 value={amount}
                 onChangeText={setAmount}
                 placeholder="amount"
-                placeholderTextColor="#8b929e"
+                placeholderTextColor="#5B616C"
                 keyboardType="decimal-pad"
-                className="flex-1 bg-surface2 rounded-2xl px-4 py-3.5 text-white"
+                className="flex-1 bg-surface2 rounded-2xl px-4 py-3.5 text-text font-mono border border-hairline"
+                style={{ fontVariant: ['tabular-nums'] }}
               />
               <TextInput
                 value={currency}
@@ -127,14 +132,14 @@ export default function Settle() {
                 autoCapitalize="characters"
                 autoCorrect={false}
                 maxLength={3}
-                className="w-20 bg-surface2 rounded-2xl px-4 py-3.5 text-white text-center"
+                className="w-20 bg-surface2 rounded-2xl px-4 py-3.5 text-text text-center font-mono border border-hairline"
               />
             </View>
           </>
         )}
 
         {error && <ErrorText>{error}</ErrorText>}
-        <Button label={create.isPending ? 'recording…' : 'Record payment'} onPress={record} disabled={create.isPending} />
+        <Button label={create.isPending ? 'recording…' : 'record payment'} onPress={record} disabled={create.isPending} />
       </ScrollView>
     </Screen>
   );
