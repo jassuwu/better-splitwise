@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Button as UIButton, Host } from '@expo/ui/swift-ui';
-import { buttonStyle, controlSize, disabled as disabledMod, frame, tint } from '@expo/ui/swift-ui/modifiers';
+import { buttonStyle, controlSize, disabled as disabledMod, foregroundStyle, frame, tint } from '@expo/ui/swift-ui/modifiers';
 import { Children, type ReactNode } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { SFSymbol } from 'sf-symbols-typescript';
@@ -89,7 +89,9 @@ export function Button({
       buttonStyle(variant === 'primary' ? 'glassProminent' : 'glass'),
       controlSize('large'),
       frame({ maxWidth: 1000 }),
-      ...(variant === 'primary' ? [tint('#d4fd80')] : []),
+      // lime is a LIGHT accent: filled prominent button needs a dark label; ghost gets a lime label
+      ...(variant === 'primary' ? [tint('#d4fd80'), foregroundStyle('#0a0a0a')] : []),
+      ...(variant === 'ghost' ? [tint('#d4fd80')] : []),
       ...(disabled ? [disabledMod(true)] : []),
     ];
     return (
@@ -129,7 +131,7 @@ export function Chip({ label, active, onPress }: { label: string; active?: boole
           onPress={onPress}
           modifiers={
             active
-              ? [buttonStyle('glassProminent'), tint('#d4fd80'), controlSize('regular')]
+              ? [buttonStyle('glassProminent'), tint('#d4fd80'), foregroundStyle('#0a0a0a'), controlSize('regular')]
               : [buttonStyle('glass'), controlSize('regular')]
           }
         />
