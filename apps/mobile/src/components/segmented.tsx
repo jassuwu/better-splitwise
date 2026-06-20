@@ -1,8 +1,9 @@
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
+import { PressableScale } from '@/components/press';
 import { cn } from '@/lib/cn';
 
-/** A compact two-or-more option toggle (quiet control, not an option wall). */
+/** A compact toggle (quiet control). Active segment carries a faint volt wash. */
 export function Segmented<T extends string>({
   options,
   value,
@@ -13,16 +14,16 @@ export function Segmented<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <View className="flex-row bg-surface rounded-full p-1">
+    <View className="flex-row bg-surface2 rounded-full p-1 border border-hairline">
       {options.map((o) => {
         const active = o.value === value;
         return (
-          <Pressable
+          <PressableScale
             key={o.value}
             onPress={() => onChange(o.value)}
-            className={cn('flex-1 rounded-full py-2 items-center', active && 'bg-brand')}>
-            <Text className={cn('text-sm font-medium', active ? 'text-white' : 'text-muted')}>{o.label}</Text>
-          </Pressable>
+            className={cn('flex-1 rounded-full py-2 items-center', active && 'bg-volt/10')}>
+            <Text className={cn('text-sm font-body-medium', active ? 'text-volt' : 'text-muted')}>{o.label}</Text>
+          </PressableScale>
         );
       })}
     </View>

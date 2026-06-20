@@ -13,19 +13,20 @@ export function SecretInput({
 }) {
   const [show, setShow] = useState(false);
   return (
-    <View className="flex-row items-center bg-surface2 rounded-2xl px-4">
+    <View className="flex-row items-center bg-surface2 rounded-2xl px-4 border border-hairline">
       <TextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor="#8b929e"
+        placeholderTextColor="#5B616C"
         autoCapitalize="none"
         autoCorrect={false}
         secureTextEntry={!show}
-        className="flex-1 text-white py-3.5"
+        className="flex-1 text-text font-mono py-3.5"
+        style={{ fontVariant: ['tabular-nums'] }}
       />
       <Pressable onPress={() => setShow((s) => !s)} hitSlop={10}>
-        <Text className="text-brand-soft text-sm font-medium">{show ? 'hide' : 'show'}</Text>
+        <Text className="text-volt text-sm font-body-medium">{show ? 'hide' : 'show'}</Text>
       </Pressable>
     </View>
   );
