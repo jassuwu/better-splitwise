@@ -4,31 +4,19 @@ module.exports = {
   presets: [require('nativewind/preset')],
   theme: {
     extend: {
+      // iOS system semantic colours (dark mode — app is locked dark)
       colors: {
-        // graphite — money is the only color
-        ink: '#07080A', // app bg (near-black graphite)
-        ink2: '#0E1014', // sheet / modal floor
-        surface: '#14181E', // matte card (data)
-        surface2: '#1C212A', // elevated chip / input
-        hairline: 'rgba(255,255,255,0.08)', // light hairline, not a gray line
-        muted: '#8B929E', // secondary text
-        faint: '#5B616C', // tertiary / dimmed cents / settled
-        text: '#F4F6F8', // primary text (soft white)
-        volt: '#B8FF3C', // THE accent — money in motion
-        'volt-soft': '#D6FF8A',
-        owed: '#6FE6B0', // someone owes you
-        owe: '#FF8A8A', // you owe
-        ember: '#FF9A6B', // state glow when you owe
-        brand: '#B8FF3C', // retired violet -> brand is volt
-      },
-      fontFamily: {
-        display: ['HankenGrotesk_600SemiBold'],
-        'display-bold': ['HankenGrotesk_700Bold'],
-        body: ['HankenGrotesk_400Regular'],
-        'body-medium': ['HankenGrotesk_500Medium'],
-        'body-semibold': ['HankenGrotesk_600SemiBold'],
-        mono: ['DMMono_500Medium'],
-        'mono-regular': ['DMMono_400Regular'],
+        groupedBg: '#000000', // systemGroupedBackground (screen)
+        cell: '#1C1C1E', // secondarySystemGroupedBackground (cells/cards/inputs)
+        cell2: '#2C2C2E', // tertiarySystemGroupedBackground (pressed / elevated)
+        label: '#FFFFFF', // label
+        secondaryLabel: 'rgba(235,235,245,0.6)',
+        tertiaryLabel: 'rgba(235,235,245,0.3)',
+        separator: 'rgba(84,84,88,0.6)',
+        fill: 'rgba(120,120,128,0.36)',
+        fill3: 'rgba(118,118,128,0.24)', // segmented / chip track
+        tint: '#FF453A', // systemRed — brand + destructive + you-owe
+        green: '#30D158', // systemGreen — owed to you
       },
     },
   },
