@@ -9,6 +9,10 @@ export function firstName(user: Pick<SplitwiseUser, 'id' | 'first_name'>): strin
   return user.first_name?.trim() || `user ${user.id}`;
 }
 
+export function avatarUri(user: Pick<SplitwiseUser, 'picture'> | null | undefined): string | null {
+  return user?.picture?.medium ?? user?.picture?.large ?? user?.picture?.small ?? null;
+}
+
 /**
  * Collapse a Splitwise balance array into a single signed amount + currency.
  * Most users transact in one currency; we sum amounts and label with the first.
