@@ -1,9 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Button as UIButton, Host } from '@expo/ui/swift-ui';
+import { buttonStyle, controlSize, disabled as disabledMod, frame, tint } from '@expo/ui/swift-ui/modifiers';
 import { Children, type ReactNode } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import type { SFSymbol } from 'sf-symbols-typescript';
 
 import { PressableScale } from '@/components/press';
 import { cn } from '@/lib/cn';
+import { nativeGlass } from '@/lib/native-glass';
 
 export function Screen({ children }: { children: ReactNode }) {
   return <View className="flex-1 bg-groupedBg">{children}</View>;
@@ -70,13 +74,37 @@ export function Button({
   disabled,
   variant = 'primary',
   className,
+  systemImage,
 }: {
   label: string;
   onPress: () => void;
   disabled?: boolean;
   variant?: ButtonVariant;
   className?: string;
+  systemImage?: SFSymbol;
 }) {
+  // iOS 26 — native Liquid Glass button (.glassProminent for the primary CTA, .glass otherwise)
+  if (nativeGlass()) {
+    const mods = [
+      buttonStyle(variant === 'primary' ? 'glassProminent' : 'glass'),
+      controlSize('large'),
+      frame({ maxWidth: 1000 }),
+      ...(variant === 'primary' ? [tint('#d4fd80')] : []),
+      ...(disabled ? [disabledMod(true)] : []),
+    ];
+    return (
+      <Host matchContents={{ vertical: true }} colorScheme="dark" style={{ alignSelf: 'stretch' }}>
+        <UIButton
+          label={label}
+          systemImage={systemImage}
+          role={variant === 'danger' ? 'destructive' : undefined}
+          onPress={onPress}
+          modifiers={mods}
+        />
+      </Host>
+    );
+  }
+
   const shell = variant === 'primary' ? 'bg-tint' : variant === 'ghost' ? 'border border-separator' : '';
   const text = variant === 'primary' ? 'text-[#0a0a0a]' : variant === 'danger' ? 'text-red' : 'text-label';
   return (
@@ -92,6 +120,22 @@ export function Button({
 }
 
 export function Chip({ label, active, onPress }: { label: string; active?: boolean; onPress: () => void }) {
+  // iOS 26 — a capsule glass button; selected reads as the tinted prominent glass
+  if (nativeGlass()) {
+    return (
+      <Host matchContents colorScheme="dark">
+        <UIButton
+          label={label}
+          onPress={onPress}
+          modifiers={
+            active
+              ? [buttonStyle('glassProminent'), tint('#d4fd80'), controlSize('regular')]
+              : [buttonStyle('glass'), controlSize('regular')]
+          }
+        />
+      </Host>
+    );
+  }
   return (
     <PressableScale
       onPress={onPress}
