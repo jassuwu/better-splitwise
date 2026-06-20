@@ -1,12 +1,10 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { GlassFab } from '@/components/glass-fab';
-import { ThemedText } from '@/components/themed-text';
-import { Avatar, Card, Empty, ErrorText, Loading, Money, PrimaryButton, Screen } from '@/components/ui';
-import { Spacing } from '@/constants/theme';
-import { balanceLabel, displayName, firstName, money, netBalance } from '@/lib/format';
+import { Avatar } from '@/components/avatar';
+import { Button, Card, Empty, ErrorText, Loading, Money, Screen } from '@/components/ui';
+import { avatarUri, displayName, firstName, money, netBalance } from '@/lib/format';
 import { useCurrentUser, useExpenses, useGroup } from '@/lib/queries';
 
 export default function GroupDetail() {
@@ -20,7 +18,8 @@ export default function GroupDetail() {
   const me = user.data?.id;
 
   const myNet = netBalance(group.data?.members.find((m) => m.id === me)?.balance);
-  const myLbl = balanceLabel(myNet.amount);
+  const myColor = myNet.amount > 0 ? 'text-owed' : myNet.amount < 0 ? 'text-owe' : 'text-muted';
+  const myLabel = Math.abs(myNet.amount) < 0.005 ? 'settled up' : myNet.amount > 0 ? 'you are owed' : 'you owe';
   const debts = group.data?.simplified_debts ?? [];
   const memberName = (uid: number) => {
     const m = group.data?.members.find((x) => x.id === uid);
@@ -29,59 +28,64 @@ export default function GroupDetail() {
 
   return (
     <Screen>
-      <Stack.Screen options={{ title: group.data?.name ?? 'Group' }} />
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 110 }]}>
+      <Stack.Screen
+        options={{ title: group.data?.name ?? 'Group', headerStyle: { backgroundColor: '#0b0d11' }, headerTintColor: '#ffffff' }}
+      />
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 24, gap: 12 }}>
         {group.isLoading && <Loading />}
         {group.error && <ErrorText>{String(group.error)}</ErrorText>}
-
         {group.data && (
           <>
-            <ThemedText type="subtitle" style={{ color: myLbl.color }}>
-              {myLbl.text}
-            </ThemedText>
-            <ThemedText type="title" style={{ color: myLbl.color }}>
-              {myNet.currency ? `${myNet.currency} ` : ''}
-              {Math.abs(myNet.amount).toFixed(2)}
-            </ThemedText>
+            <View className="items-center mt-1">
+              <Text className={`text-4xl font-extrabold ${myColor}`}>
+                {myNet.currency ? `${myNet.currency} ` : ''}
+                {Math.abs(myNet.amount).toFixed(2)}
+              </Text>
+              <Text className="text-muted text-sm mt-1">{myLabel}</Text>
+            </View>
 
-            <View style={styles.memberRow}>
+            <View className="flex-row flex-wrap gap-2 justify-center my-1">
               {group.data.members.map((m) => (
-                <Avatar key={m.id} name={displayName(m)} size={32} />
+                <Avatar key={m.id} name={displayName(m)} uri={avatarUri(m)} size={36} />
               ))}
             </View>
 
+            <View className="flex-row gap-3">
+              <View className="flex-1">
+                <Button label="Add expense" onPress={() => router.push(`/add?groupId=${id}`)} />
+              </View>
+              <View className="flex-1">
+                <Button label="Settle up" variant="ghost" onPress={() => router.push(`/settle?groupId=${id}`)} />
+              </View>
+            </View>
+
             {debts.length > 0 && (
-              <Card>
-                <ThemedText type="smallBold">who owes whom</ThemedText>
+              <Card className="gap-2">
+                <Text className="text-muted text-xs uppercase tracking-wide">who owes whom</Text>
                 {debts.map((d, i) => (
-                  <ThemedText key={`${d.from}-${d.to}-${i}`} type="small">
+                  <Text key={`${d.from}-${d.to}-${i}`} className="text-white text-sm">
                     {memberName(d.from)} → {memberName(d.to)} · {d.currency_code} {Number(d.amount).toFixed(2)}
-                  </ThemedText>
+                  </Text>
                 ))}
               </Card>
             )}
 
-            <PrimaryButton label="Settle up" onPress={() => router.push(`/settle?groupId=${id}`)} />
-
-            <ThemedText type="smallBold">expenses</ThemedText>
+            <Text className="text-muted text-xs uppercase tracking-wide mt-2">expenses</Text>
             {expenses.isLoading && <Loading />}
             {expenses.data && expenses.data.filter((e) => !e.deleted_at).length === 0 && <Empty>no expenses yet</Empty>}
             {(expenses.data ?? [])
               .filter((e) => !e.deleted_at)
               .map((e) => {
                 const mine = e.users.find((u) => (u.user_id ?? u.user?.id) === me);
-                const net = mine ? Number(mine.paid_share) - Number(mine.owed_share) : 0;
-                const l = balanceLabel(net);
+                const myE = mine ? Number(mine.paid_share) - Number(mine.owed_share) : 0;
                 return (
                   <Pressable key={e.id} onPress={() => router.push(`/expense/${e.id}`)}>
-                    <Card style={styles.expenseRow}>
-                      <View style={styles.flex}>
-                        <ThemedText type="small">{e.payment ? 'settlement' : e.description}</ThemedText>
-                        <ThemedText type="small" themeColor="textSecondary">
-                          {money(Number(e.cost), e.currency_code)}
-                        </ThemedText>
+                    <Card className="flex-row items-center gap-2">
+                      <View className="flex-1">
+                        <Text className="text-white">{e.payment ? 'settlement' : e.description}</Text>
+                        <Text className="text-muted text-xs">{money(Number(e.cost), e.currency_code)}</Text>
                       </View>
-                      {!e.payment && <Money amount={net} currency={e.currency_code} color={l.color} />}
+                      {!e.payment && <Money amount={myE} currency={e.currency_code} />}
                     </Card>
                   </Pressable>
                 );
@@ -89,14 +93,6 @@ export default function GroupDetail() {
           </>
         )}
       </ScrollView>
-      <GlassFab onPress={() => router.push(`/add?groupId=${id}`)} />
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  content: { padding: Spacing.four, gap: Spacing.two },
-  memberRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.one, marginVertical: Spacing.one },
-  expenseRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-  flex: { flex: 1 },
-});

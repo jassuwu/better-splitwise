@@ -1,42 +1,29 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, TextInput } from 'react-native';
+import { Linking, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ThemedText } from '@/components/themed-text';
-import { Avatar, Card, PrimaryButton, Screen } from '@/components/ui';
-import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { Avatar } from '@/components/avatar';
+import { Wordmark } from '@/components/brand';
+import { SecretInput } from '@/components/secret-input';
+import { Button, Card, Screen } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
-import { displayName } from '@/lib/format';
+import { avatarUri, displayName } from '@/lib/format';
 import { useCurrentUser } from '@/lib/queries';
-import { clearApiKey, clearGeminiKey, getGeminiKey, setGeminiKey } from '@/lib/token-store';
+import { clearApiKey, clearGeminiKey, getApiKey, getGeminiKey, setApiKey, setGeminiKey } from '@/lib/token-store';
 
 export default function You() {
-  const theme = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { refresh } = useAuth();
   const user = useCurrentUser();
-  const [geminiKey, setGeminiKeyInput] = useState('');
-  const [hasGemini, setHasGemini] = useState(false);
+  const [swKey, setSwKey] = useState('');
+  const [gemKey, setGemKey] = useState('');
 
   useEffect(() => {
-    void getGeminiKey().then((k) => setHasGemini(!!k));
+    void getApiKey().then((k) => setSwKey(k ?? ''));
+    void getGeminiKey().then((k) => setGemKey(k ?? ''));
   }, []);
-
-  async function saveGemini() {
-    const trimmed = geminiKey.trim();
-    if (!trimmed) return;
-    await setGeminiKey(trimmed);
-    setHasGemini(true);
-    setGeminiKeyInput('');
-  }
-
-  async function removeGemini() {
-    await clearGeminiKey();
-    setHasGemini(false);
-  }
 
   async function signOut() {
     await clearApiKey();
@@ -47,73 +34,56 @@ export default function You() {
 
   return (
     <Screen>
-      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + Spacing.three }]}>
-        <ThemedText type="subtitle">You</ThemedText>
+      <ScrollView contentContainerStyle={{ paddingTop: insets.top + 16, paddingBottom: insets.bottom + 140, paddingHorizontal: 20 }}>
+        <View className="items-center mt-2 mb-7">
+          {user.data && <Avatar name={displayName(user.data)} uri={avatarUri(user.data)} size={88} />}
+          {user.data && <Text className="text-white text-xl font-bold mt-3">{displayName(user.data)}</Text>}
+          {user.data?.email ? <Text className="text-muted text-sm mt-0.5">{user.data.email}</Text> : null}
+          {user.data?.default_currency ? (
+            <Text className="text-muted text-xs mt-1">default currency · {user.data.default_currency}</Text>
+          ) : null}
+        </View>
 
-        {user.data && (
-          <Card style={styles.profile}>
-            <Avatar name={displayName(user.data)} size={56} />
-            <ThemedText type="default">{displayName(user.data)}</ThemedText>
-            {user.data.email && (
-              <ThemedText type="small" themeColor="textSecondary">
-                {user.data.email}
-              </ThemedText>
-            )}
-            {user.data.default_currency && (
-              <ThemedText type="small" themeColor="textSecondary">
-                default currency · {user.data.default_currency}
-              </ThemedText>
-            )}
-          </Card>
-        )}
-
-        <Card>
-          <ThemedText type="smallBold">receipt scanning</ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            {hasGemini
-              ? 'Gemini key set — receipt scanning is enabled.'
-              : 'add a Gemini key (aistudio.google.com → API key) to scan receipts.'}
-          </ThemedText>
-          {hasGemini ? (
-            <PrimaryButton label="Remove Gemini key" onPress={removeGemini} />
-          ) : (
-            <>
-              <TextInput
-                value={geminiKey}
-                onChangeText={setGeminiKeyInput}
-                placeholder="gemini api key"
-                placeholderTextColor={theme.textSecondary}
-                autoCapitalize="none"
-                autoCorrect={false}
-                secureTextEntry
-                style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
-              />
-              <PrimaryButton label="Save Gemini key" onPress={saveGemini} />
-            </>
-          )}
+        <Text className="text-muted text-xs uppercase tracking-wide mb-2">splitwise</Text>
+        <Card className="gap-3">
+          <SecretInput value={swKey} onChangeText={setSwKey} placeholder="splitwise api key" />
+          <Button label="Update key" onPress={() => void setApiKey(swKey.trim())} />
         </Card>
 
-        <Pressable onPress={signOut} style={styles.signOut}>
-          <ThemedText type="smallBold" style={styles.signOutLabel}>
-            Sign out
-          </ThemedText>
-        </Pressable>
+        <Text className="text-muted text-xs uppercase tracking-wide mb-2 mt-6">receipt scanning · gemini</Text>
+        <Card className="gap-3">
+          <SecretInput value={gemKey} onChangeText={setGemKey} placeholder="gemini api key (aistudio.google.com)" />
+          <View className="flex-row gap-3">
+            <View className="flex-1">
+              <Button label="Save key" onPress={() => void setGeminiKey(gemKey.trim())} disabled={!gemKey.trim()} />
+            </View>
+            <View className="flex-1">
+              <Button
+                label="Clear"
+                variant="ghost"
+                onPress={() => {
+                  setGemKey('');
+                  void clearGeminiKey();
+                }}
+              />
+            </View>
+          </View>
+        </Card>
+
+        <View className="h-7" />
+        <Button label="Sign out" variant="danger" onPress={signOut} />
+
+        <View className="items-center mt-12 gap-1">
+          <Wordmark className="text-base" />
+          <Text className="text-muted text-xs">a faster splitwise · built to replace the app, keep the account</Text>
+          <Text className="text-muted text-xs">
+            made by{' '}
+            <Text className="text-brand-soft" onPress={() => void Linking.openURL('https://jass.gg')}>
+              jass
+            </Text>
+          </Text>
+        </View>
       </ScrollView>
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  content: { padding: Spacing.four, gap: Spacing.three },
-  profile: { alignItems: 'center', gap: Spacing.one },
-  input: { borderWidth: 1, borderRadius: 10, padding: Spacing.two + 2 },
-  signOut: {
-    borderWidth: 1,
-    borderColor: '#e5484d',
-    borderRadius: 12,
-    padding: Spacing.two + 2,
-    alignItems: 'center',
-    marginTop: Spacing.two,
-  },
-  signOutLabel: { color: '#e5484d' },
-});

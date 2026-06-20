@@ -2,13 +2,10 @@ import { computeSplit, toCents } from '@repo/split-core';
 import { toCreateExpenseParams } from '@repo/splitwise';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ThemedText } from '@/components/themed-text';
-import { ErrorText, PrimaryButton, Screen } from '@/components/ui';
-import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { Button, Chip, ErrorText, Screen } from '@/components/ui';
 import { firstName } from '@/lib/format';
 import { setPendingReceipt } from '@/lib/pending-receipt';
 import { useCreateExpense, useCurrentUser, useGroups } from '@/lib/queries';
@@ -16,7 +13,6 @@ import { scanReceipt } from '@/lib/scan';
 
 export default function Add() {
   const params = useLocalSearchParams<{ groupId?: string }>();
-  const theme = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const user = useCurrentUser();
@@ -120,111 +116,81 @@ export default function Add() {
 
   return (
     <Screen>
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + Spacing.four }]}>
-        <TextInput
-          value={amount}
-          onChangeText={setAmount}
-          placeholder="0.00"
-          placeholderTextColor={theme.textSecondary}
-          keyboardType="decimal-pad"
-          style={[styles.amount, { color: theme.text }]}
-        />
-        <View style={styles.currencyRow}>
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 24, gap: 16 }}>
+        <View className="items-center mt-2 flex-row justify-center">
           <TextInput
             value={currency}
             onChangeText={setCurrency}
             autoCapitalize="characters"
             autoCorrect={false}
             maxLength={3}
-            style={[styles.currency, { color: theme.textSecondary, borderColor: theme.backgroundSelected }]}
+            className="text-muted text-xl w-12 text-right mr-2"
           />
           <TextInput
-            value={description}
-            onChangeText={setDescription}
-            placeholder="what for?"
-            placeholderTextColor={theme.textSecondary}
-            style={[styles.desc, { color: theme.text, borderColor: theme.backgroundSelected }]}
+            value={amount}
+            onChangeText={setAmount}
+            placeholder="0.00"
+            placeholderTextColor="#3a3f4a"
+            keyboardType="decimal-pad"
+            className="text-white text-5xl font-extrabold"
           />
         </View>
 
-        <Pressable onPress={onScan} disabled={scanning} style={[styles.scan, { borderColor: theme.backgroundSelected }]}>
-          {scanning ? <ActivityIndicator /> : <ThemedText type="small">＋ scan a receipt</ThemedText>}
+        <TextInput
+          value={description}
+          onChangeText={setDescription}
+          placeholder="what for?"
+          placeholderTextColor="#8b929e"
+          className="bg-surface2 rounded-2xl px-4 py-3.5 text-white text-center"
+        />
+
+        <Pressable
+          onPress={onScan}
+          disabled={scanning}
+          className="flex-row items-center justify-center gap-2 border border-hairline rounded-2xl py-3.5 active:opacity-70">
+          {scanning ? <ActivityIndicator color="#7c5cff" /> : <Text className="text-brand-soft font-medium">＋ scan a receipt</Text>}
         </Pressable>
 
-        <ThemedText type="small" themeColor="textSecondary">
-          group
-        </ThemedText>
-        <View style={styles.chipRow}>
-          {(groups.data ?? []).map((g) => (
-            <Pressable
-              key={g.id}
-              onPress={() => setGroupId(g.id)}
-              style={[styles.chip, { borderColor: groupId === g.id ? '#3c87f7' : theme.backgroundSelected }]}>
-              <ThemedText type="small">{g.name}</ThemedText>
-            </Pressable>
-          ))}
+        <View className="gap-2">
+          <Text className="text-muted text-xs uppercase tracking-wide">group</Text>
+          <View className="flex-row flex-wrap gap-2">
+            {(groups.data ?? []).map((g) => (
+              <Chip key={g.id} label={g.name} active={groupId === g.id} onPress={() => setGroupId(g.id)} />
+            ))}
+          </View>
         </View>
 
         {group && (
           <>
-            <ThemedText type="small" themeColor="textSecondary">
-              split between
-            </ThemedText>
-            <View style={styles.chipRow}>
-              {members.map((m) => (
-                <Pressable
-                  key={m.id}
-                  onPress={() => toggle(m.id)}
-                  style={[
-                    styles.chip,
-                    { borderColor: included.has(m.id) ? '#3c87f7' : theme.backgroundSelected, opacity: included.has(m.id) ? 1 : 0.5 },
-                  ]}>
-                  <ThemedText type="small">{firstName(m)}</ThemedText>
-                </Pressable>
-              ))}
-            </View>
-
-            <ThemedText type="small" themeColor="textSecondary">
-              paid by
-            </ThemedText>
-            <View style={styles.chipRow}>
-              {members
-                .filter((m) => included.has(m.id))
-                .map((m) => (
-                  <Pressable
-                    key={m.id}
-                    onPress={() => setPayerId(m.id)}
-                    style={[
-                      styles.chip,
-                      { borderColor: payerId === m.id ? '#3c87f7' : theme.backgroundSelected, opacity: payerId === m.id ? 1 : 0.6 },
-                    ]}>
-                    <ThemedText type="small">{firstName(m)}</ThemedText>
-                  </Pressable>
+            <View className="gap-2">
+              <Text className="text-muted text-xs uppercase tracking-wide">split between</Text>
+              <View className="flex-row flex-wrap gap-2">
+                {members.map((m) => (
+                  <Chip key={m.id} label={firstName(m)} active={included.has(m.id)} onPress={() => toggle(m.id)} />
                 ))}
+              </View>
             </View>
-
+            <View className="gap-2">
+              <Text className="text-muted text-xs uppercase tracking-wide">paid by</Text>
+              <View className="flex-row flex-wrap gap-2">
+                {members
+                  .filter((m) => included.has(m.id))
+                  .map((m) => (
+                    <Chip key={m.id} label={firstName(m)} active={payerId === m.id} onPress={() => setPayerId(m.id)} />
+                  ))}
+              </View>
+            </View>
             {scanned && (
-              <Pressable onPress={() => router.push(`/assign?groupId=${group.id}`)}>
-                <ThemedText type="link">split by item instead →</ThemedText>
+              <Pressable onPress={() => router.push(`/assign?groupId=${group.id}`)} className="active:opacity-70">
+                <Text className="text-brand-soft text-center font-medium">split by item instead →</Text>
               </Pressable>
             )}
           </>
         )}
 
         {error && <ErrorText>{error}</ErrorText>}
-        <PrimaryButton label={create.isPending ? 'adding…' : 'Add expense'} onPress={push} disabled={create.isPending} />
+        <Button label={create.isPending ? 'adding…' : 'Add expense'} onPress={push} disabled={create.isPending} />
       </ScrollView>
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  content: { padding: Spacing.four, gap: Spacing.three },
-  amount: { fontSize: 48, fontWeight: '700', textAlign: 'center', paddingVertical: Spacing.two },
-  currencyRow: { flexDirection: 'row', gap: Spacing.two },
-  currency: { width: 64, textAlign: 'center', borderWidth: 1, borderRadius: 10, padding: Spacing.two },
-  desc: { flex: 1, borderWidth: 1, borderRadius: 10, padding: Spacing.two },
-  scan: { borderWidth: 1, borderRadius: 12, padding: Spacing.three, alignItems: 'center' },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
-  chip: { borderWidth: 1, borderRadius: 999, paddingVertical: Spacing.one, paddingHorizontal: Spacing.three },
-});

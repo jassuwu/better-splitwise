@@ -2,20 +2,16 @@ import { computeSplit, toCents, type SplitInput } from '@repo/split-core';
 import { formatItemizationComment, toCreateExpenseParams } from '@repo/splitwise';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ThemedText } from '@/components/themed-text';
-import { Card, Empty, ErrorText, Money, PrimaryButton, Screen } from '@/components/ui';
-import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { Button, Card, Chip, Empty, ErrorText, Money, Screen } from '@/components/ui';
 import { firstName } from '@/lib/format';
 import { getPendingReceipt } from '@/lib/pending-receipt';
 import { useCreateExpense, useCurrentUser, useGroups } from '@/lib/queries';
 
 export default function Assign() {
   const params = useLocalSearchParams<{ groupId?: string }>();
-  const theme = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const user = useCurrentUser();
@@ -45,7 +41,7 @@ export default function Assign() {
   if (!receipt) {
     return (
       <Screen>
-        <ScrollView contentContainerStyle={styles.content}>
+        <ScrollView contentContainerStyle={{ padding: 20 }}>
           <Empty>no scanned receipt — scan one from Add first</Empty>
         </ScrollView>
       </Screen>
@@ -135,70 +131,47 @@ export default function Assign() {
         }),
         comment: formatItemizationComment(split, names),
       },
-      {
-        onSuccess: () => router.back(),
-        onError: (e) => setError(e instanceof Error ? e.message : String(e)),
-      },
+      { onSuccess: () => router.back(), onError: (e) => setError(e instanceof Error ? e.message : String(e)) },
     );
   }
 
   return (
     <Screen>
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + Spacing.four }]}>
-        <ThemedText type="subtitle">assign items</ThemedText>
-        <ThemedText type="small" themeColor="textSecondary">
-          tap who shared each item · tax & tip split proportionally
-        </ThemedText>
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 24, gap: 12 }}>
+        <Text className="text-muted text-sm">tap who shared each item · tax &amp; tip split proportionally</Text>
 
         {receipt.items.map((it, i) => (
-          <Card key={i}>
-            <View style={styles.row}>
-              <ThemedText type="small" style={styles.flex}>
+          <Card key={i} className="gap-3">
+            <View className="flex-row items-center">
+              <Text className="flex-1 text-white">
                 {it.quantity > 1 ? `${it.quantity}× ` : ''}
                 {it.description}
-              </ThemedText>
-              <ThemedText type="small">{it.total.toFixed(2)}</ThemedText>
+              </Text>
+              <Text className="text-muted">{it.total.toFixed(2)}</Text>
             </View>
-            <View style={styles.chipRow}>
-              {members.map((m) => {
-                const on = (assign[i] ?? new Set<number>()).has(m.id);
-                return (
-                  <Pressable
-                    key={m.id}
-                    onPress={() => toggle(i, m.id)}
-                    style={[styles.chip, { borderColor: on ? '#3c87f7' : theme.backgroundSelected, opacity: on ? 1 : 0.45 }]}>
-                    <ThemedText type="small">{firstName(m)}</ThemedText>
-                  </Pressable>
-                );
-              })}
+            <View className="flex-row flex-wrap gap-2">
+              {members.map((m) => (
+                <Chip key={m.id} label={firstName(m)} active={(assign[i] ?? new Set<number>()).has(m.id)} onPress={() => toggle(i, m.id)} />
+              ))}
             </View>
           </Card>
         ))}
 
-        <ThemedText type="small" themeColor="textSecondary">
-          paid by
-        </ThemedText>
-        <View style={styles.chipRow}>
+        <Text className="text-muted text-xs uppercase tracking-wide mt-2">paid by</Text>
+        <View className="flex-row flex-wrap gap-2">
           {members.map((m) => (
-            <Pressable
-              key={m.id}
-              onPress={() => setPayerId(m.id)}
-              style={[styles.chip, { borderColor: payerId === m.id ? '#3c87f7' : theme.backgroundSelected, opacity: payerId === m.id ? 1 : 0.6 }]}>
-              <ThemedText type="small">{firstName(m)}</ThemedText>
-            </Pressable>
+            <Chip key={m.id} label={firstName(m)} active={payerId === m.id} onPress={() => setPayerId(m.id)} />
           ))}
         </View>
 
         {preview && (
-          <Card>
-            <ThemedText type="smallBold">
+          <Card className="gap-2 mt-2">
+            <Text className="text-white font-semibold">
               split · {currency} {(preview.total / 100).toFixed(2)}
-            </ThemedText>
+            </Text>
             {preview.perPerson.map((p) => (
-              <View key={p.personId} style={styles.row}>
-                <ThemedText type="small" style={styles.flex}>
-                  {nameFor(p.personId)}
-                </ThemedText>
+              <View key={p.personId} className="flex-row">
+                <Text className="flex-1 text-white">{nameFor(p.personId)}</Text>
                 <Money amount={p.owed / 100} currency={currency} />
               </View>
             ))}
@@ -206,20 +179,8 @@ export default function Assign() {
         )}
 
         {error && <ErrorText>{error}</ErrorText>}
-        <PrimaryButton
-          label={create.isPending ? 'adding…' : 'Add itemized expense'}
-          onPress={push}
-          disabled={create.isPending}
-        />
+        <Button label={create.isPending ? 'adding…' : 'Add itemized expense'} onPress={push} disabled={create.isPending} />
       </ScrollView>
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  content: { padding: Spacing.four, gap: Spacing.two },
-  row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-  flex: { flex: 1 },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two, marginTop: Spacing.one },
-  chip: { borderWidth: 1, borderRadius: 999, paddingVertical: Spacing.one, paddingHorizontal: Spacing.three },
-});

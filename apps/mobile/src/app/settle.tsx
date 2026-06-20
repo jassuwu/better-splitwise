@@ -2,19 +2,15 @@ import { computeSplit, toCents } from '@repo/split-core';
 import { toCreateExpenseParams } from '@repo/splitwise';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ThemedText } from '@/components/themed-text';
-import { ErrorText, PrimaryButton, Screen } from '@/components/ui';
-import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { Button, Chip, ErrorText, Screen } from '@/components/ui';
 import { firstName } from '@/lib/format';
 import { useCreateExpense, useCurrentUser, useGroups } from '@/lib/queries';
 
 export default function Settle() {
-  const params = useLocalSearchParams<{ groupId?: string }>();
-  const theme = useTheme();
+  const params = useLocalSearchParams<{ groupId?: string; friendId?: string }>();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const user = useCurrentUser();
@@ -29,6 +25,7 @@ export default function Settle() {
   const [error, setError] = useState<string | null>(null);
 
   const me = user.data?.id ?? null;
+  const friendId = params.friendId ? Number(params.friendId) : null;
   const group = useMemo(() => groups.data?.find((g) => g.id === groupId) ?? null, [groups.data, groupId]);
   const members = group?.members ?? [];
 
@@ -39,9 +36,13 @@ export default function Settle() {
   useEffect(() => {
     if (group) {
       setFrom(group.members.find((m) => m.id === me)?.id ?? group.members[0]?.id ?? null);
-      setTo(group.members.find((m) => m.id !== me)?.id ?? null);
+      setTo(
+        group.members.find((m) => m.id === friendId)?.id ??
+          group.members.find((m) => m.id !== me)?.id ??
+          null,
+      );
     }
-  }, [group, me]);
+  }, [group, me, friendId]);
 
   function record() {
     setError(null);
@@ -83,57 +84,42 @@ export default function Settle() {
 
   return (
     <Screen>
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + Spacing.four }]}>
-        <ThemedText type="subtitle">Settle up</ThemedText>
-        <ThemedText type="small" themeColor="textSecondary">
-          group
-        </ThemedText>
-        <View style={styles.chipRow}>
-          {(groups.data ?? []).map((g) => (
-            <Pressable
-              key={g.id}
-              onPress={() => setGroupId(g.id)}
-              style={[styles.chip, { borderColor: groupId === g.id ? '#3c87f7' : theme.backgroundSelected }]}>
-              <ThemedText type="small">{g.name}</ThemedText>
-            </Pressable>
-          ))}
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 24, gap: 16 }}>
+        <View className="gap-2">
+          <Text className="text-muted text-xs uppercase tracking-wide">group</Text>
+          <View className="flex-row flex-wrap gap-2">
+            {(groups.data ?? []).map((g) => (
+              <Chip key={g.id} label={g.name} active={groupId === g.id} onPress={() => setGroupId(g.id)} />
+            ))}
+          </View>
         </View>
+
         {group && (
           <>
-            <ThemedText type="small" themeColor="textSecondary">
-              from (paid)
-            </ThemedText>
-            <View style={styles.chipRow}>
-              {members.map((m) => (
-                <Pressable
-                  key={m.id}
-                  onPress={() => setFrom(m.id)}
-                  style={[styles.chip, { borderColor: from === m.id ? '#3c87f7' : theme.backgroundSelected, opacity: from === m.id ? 1 : 0.6 }]}>
-                  <ThemedText type="small">{firstName(m)}</ThemedText>
-                </Pressable>
-              ))}
+            <View className="gap-2">
+              <Text className="text-muted text-xs uppercase tracking-wide">from (paid)</Text>
+              <View className="flex-row flex-wrap gap-2">
+                {members.map((m) => (
+                  <Chip key={m.id} label={firstName(m)} active={from === m.id} onPress={() => setFrom(m.id)} />
+                ))}
+              </View>
             </View>
-            <ThemedText type="small" themeColor="textSecondary">
-              to
-            </ThemedText>
-            <View style={styles.chipRow}>
-              {members.map((m) => (
-                <Pressable
-                  key={m.id}
-                  onPress={() => setTo(m.id)}
-                  style={[styles.chip, { borderColor: to === m.id ? '#3c87f7' : theme.backgroundSelected, opacity: to === m.id ? 1 : 0.6 }]}>
-                  <ThemedText type="small">{firstName(m)}</ThemedText>
-                </Pressable>
-              ))}
+            <View className="gap-2">
+              <Text className="text-muted text-xs uppercase tracking-wide">to</Text>
+              <View className="flex-row flex-wrap gap-2">
+                {members.map((m) => (
+                  <Chip key={m.id} label={firstName(m)} active={to === m.id} onPress={() => setTo(m.id)} />
+                ))}
+              </View>
             </View>
-            <View style={styles.amountRow}>
+            <View className="flex-row gap-2">
               <TextInput
                 value={amount}
                 onChangeText={setAmount}
                 placeholder="amount"
-                placeholderTextColor={theme.textSecondary}
+                placeholderTextColor="#8b929e"
                 keyboardType="decimal-pad"
-                style={[styles.input, styles.flex, { color: theme.text, borderColor: theme.backgroundSelected }]}
+                className="flex-1 bg-surface2 rounded-2xl px-4 py-3.5 text-white"
               />
               <TextInput
                 value={currency}
@@ -141,24 +127,15 @@ export default function Settle() {
                 autoCapitalize="characters"
                 autoCorrect={false}
                 maxLength={3}
-                style={[styles.input, styles.cur, { color: theme.text, borderColor: theme.backgroundSelected }]}
+                className="w-20 bg-surface2 rounded-2xl px-4 py-3.5 text-white text-center"
               />
             </View>
           </>
         )}
+
         {error && <ErrorText>{error}</ErrorText>}
-        <PrimaryButton label={create.isPending ? 'recording…' : 'Record payment'} onPress={record} disabled={create.isPending} />
+        <Button label={create.isPending ? 'recording…' : 'Record payment'} onPress={record} disabled={create.isPending} />
       </ScrollView>
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  content: { padding: Spacing.four, gap: Spacing.two },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
-  chip: { borderWidth: 1, borderRadius: 999, paddingVertical: Spacing.one, paddingHorizontal: Spacing.three },
-  amountRow: { flexDirection: 'row', gap: Spacing.two, marginTop: Spacing.two },
-  input: { borderWidth: 1, borderRadius: 10, padding: Spacing.two + 2 },
-  flex: { flex: 1 },
-  cur: { width: 64, textAlign: 'center' },
-});
