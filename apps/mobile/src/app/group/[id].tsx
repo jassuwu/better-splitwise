@@ -3,9 +3,11 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/avatar';
-import { Button, Card, Empty, ErrorText, Loading, Money, Screen } from '@/components/ui';
+import { Button, Card, Empty, ErrorText, Hero, Loading, Money, Screen } from '@/components/ui';
 import { avatarUri, displayName, firstName, money, netBalance } from '@/lib/format';
 import { useCurrentUser, useExpenses, useGroup } from '@/lib/queries';
+
+const LABEL = 'text-muted text-[11px] uppercase font-body-medium';
 
 export default function GroupDetail() {
   const params = useLocalSearchParams<{ id: string }>();
@@ -18,8 +20,8 @@ export default function GroupDetail() {
   const me = user.data?.id;
 
   const myNet = netBalance(group.data?.members.find((m) => m.id === me)?.balance);
-  const myColor = myNet.amount > 0 ? 'text-owed' : myNet.amount < 0 ? 'text-owe' : 'text-muted';
-  const myLabel = Math.abs(myNet.amount) < 0.005 ? 'settled up' : myNet.amount > 0 ? 'you are owed' : 'you owe';
+  const sign = Math.abs(myNet.amount) < 0.005 ? 'settled' : myNet.amount > 0 ? 'owed' : 'owe';
+  const eyebrow = sign === 'settled' ? 'settled up' : sign === 'owed' ? 'you are owed' : 'you owe';
   const debts = group.data?.simplified_debts ?? [];
   const memberName = (uid: number) => {
     const m = group.data?.members.find((x) => x.id === uid);
@@ -27,50 +29,49 @@ export default function GroupDetail() {
   };
 
   return (
-    <Screen>
-      <Stack.Screen
-        options={{ title: group.data?.name ?? 'Group', headerStyle: { backgroundColor: '#0b0d11' }, headerTintColor: '#ffffff' }}
-      />
+    <Screen glow={sign === 'owe' ? 'ember' : 'volt'}>
+      <Stack.Screen options={{ title: group.data?.name ?? '' }} />
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 24, gap: 12 }}>
         {group.isLoading && <Loading />}
         {group.error && <ErrorText>{String(group.error)}</ErrorText>}
         {group.data && (
           <>
-            <View className="items-center mt-1">
-              <Text className={`text-4xl font-extrabold ${myColor}`}>
-                {myNet.currency ? `${myNet.currency} ` : ''}
-                {Math.abs(myNet.amount).toFixed(2)}
-              </Text>
-              <Text className="text-muted text-sm mt-1">{myLabel}</Text>
-            </View>
+            <Hero eyebrow={eyebrow} amount={myNet.amount} currency={myNet.currency} sign={sign} />
 
-            <View className="flex-row flex-wrap gap-2 justify-center my-1">
+            <View className="flex-row flex-wrap gap-2 justify-center mb-1">
               {group.data.members.map((m) => (
-                <Avatar key={m.id} name={displayName(m)} uri={avatarUri(m)} size={36} />
+                <Avatar key={m.id} name={displayName(m)} uri={avatarUri(m)} size={34} />
               ))}
             </View>
 
             <View className="flex-row gap-3">
               <View className="flex-1">
-                <Button label="Add expense" onPress={() => router.push(`/add?groupId=${id}`)} />
+                <Button label="add expense" onPress={() => router.push(`/add?groupId=${id}`)} />
               </View>
               <View className="flex-1">
-                <Button label="Settle up" variant="ghost" onPress={() => router.push(`/settle?groupId=${id}`)} />
+                <Button label="settle up" variant="ghost" onPress={() => router.push(`/settle?groupId=${id}`)} />
               </View>
             </View>
 
             {debts.length > 0 && (
               <Card className="gap-2">
-                <Text className="text-muted text-xs uppercase tracking-wide">who owes whom</Text>
+                <Text className={LABEL} style={{ letterSpacing: 1.4 }}>
+                  who owes whom
+                </Text>
                 {debts.map((d, i) => (
-                  <Text key={`${d.from}-${d.to}-${i}`} className="text-white text-sm">
-                    {memberName(d.from)} → {memberName(d.to)} · {d.currency_code} {Number(d.amount).toFixed(2)}
+                  <Text key={`${d.from}-${d.to}-${i}`} className="text-text text-sm font-body">
+                    {memberName(d.from)} → {memberName(d.to)} ·{' '}
+                    <Text className="font-mono">
+                      {d.currency_code} {Number(d.amount).toFixed(2)}
+                    </Text>
                   </Text>
                 ))}
               </Card>
             )}
 
-            <Text className="text-muted text-xs uppercase tracking-wide mt-2">expenses</Text>
+            <Text className={`${LABEL} mt-2`} style={{ letterSpacing: 1.4 }}>
+              expenses
+            </Text>
             {expenses.isLoading && <Loading />}
             {expenses.data && expenses.data.filter((e) => !e.deleted_at).length === 0 && <Empty>no expenses yet</Empty>}
             {(expenses.data ?? [])
@@ -82,8 +83,8 @@ export default function GroupDetail() {
                   <Pressable key={e.id} onPress={() => router.push(`/expense/${e.id}`)}>
                     <Card className="flex-row items-center gap-2">
                       <View className="flex-1">
-                        <Text className="text-white">{e.payment ? 'settlement' : e.description}</Text>
-                        <Text className="text-muted text-xs">{money(Number(e.cost), e.currency_code)}</Text>
+                        <Text className="text-text font-body">{e.payment ? 'settlement' : e.description}</Text>
+                        <Text className="text-faint text-xs font-mono">{money(Number(e.cost), e.currency_code)}</Text>
                       </View>
                       {!e.payment && <Money amount={myE} currency={e.currency_code} />}
                     </Card>
