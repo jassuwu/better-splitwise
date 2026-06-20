@@ -15,8 +15,9 @@ module.exports = {
         separator: 'rgba(84,84,88,0.6)',
         fill: 'rgba(120,120,128,0.36)',
         fill3: 'rgba(118,118,128,0.24)', // segmented / chip track
-        tint: '#FF453A', // systemRed — brand + destructive + you-owe
-        green: '#30D158', // systemGreen — owed to you
+        tint: '#d4fd80', // brand accent (lime) — use /opacity for variants
+        red: '#FF453A', // you owe + destructive
+        green: '#30D158', // owed to you
       },
     },
   },

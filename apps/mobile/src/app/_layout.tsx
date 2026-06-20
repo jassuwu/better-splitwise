@@ -3,14 +3,13 @@ import '../../global.css';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { PlatformColor } from 'react-native';
 
 import { AuthProvider } from '@/lib/auth';
 import { queryClient } from '@/lib/query-client';
 
 const navTheme = {
   ...DarkTheme,
-  colors: { ...DarkTheme.colors, primary: '#FF453A', background: '#000000' },
+  colors: { ...DarkTheme.colors, primary: '#d4fd80', background: '#000000' },
 };
 
 export default function RootLayout() {
@@ -18,7 +17,7 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider value={navTheme}>
         <AuthProvider>
-          <Stack screenOptions={{ headerTintColor: PlatformColor('systemRed') }}>
+          <Stack screenOptions={{ headerTintColor: '#d4fd80' }}>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="onboarding" options={{ headerShown: false }} />
             <Stack.Screen name="settle" options={{ presentation: 'modal', title: 'Settle up' }} />

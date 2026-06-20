@@ -1,9 +1,8 @@
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
-import { PlatformColor } from 'react-native';
 
 export default function TabsLayout() {
   return (
-    <NativeTabs tintColor={PlatformColor('systemRed')}>
+    <NativeTabs tintColor="#d4fd80">
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="house.fill" md="home" />

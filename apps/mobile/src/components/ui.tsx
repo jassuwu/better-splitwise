@@ -78,7 +78,7 @@ export function Button({
   className?: string;
 }) {
   const shell = variant === 'primary' ? 'bg-tint' : variant === 'ghost' ? 'border border-separator' : '';
-  const text = variant === 'primary' ? 'text-white' : variant === 'danger' ? 'text-tint' : 'text-label';
+  const text = variant === 'primary' ? 'text-[#0a0a0a]' : variant === 'danger' ? 'text-red' : 'text-label';
   return (
     <PressableScale
       onPress={onPress}
@@ -113,7 +113,7 @@ export function Hero({
   currency: string;
   sign: 'owed' | 'owe' | 'settled';
 }) {
-  const colorCls = sign === 'owed' ? 'text-green' : sign === 'owe' ? 'text-tint' : 'text-secondaryLabel';
+  const colorCls = sign === 'owed' ? 'text-green' : sign === 'owe' ? 'text-red' : 'text-secondaryLabel';
   return (
     <View className="items-center py-6">
       <Text className="text-secondaryLabel text-[13px] mb-2">{eyebrow}</Text>
@@ -133,7 +133,7 @@ export function Hero({
 
 export function Money({ amount, currency, className }: { amount: number; currency: string; className?: string }) {
   const sign = amount < 0 ? '-' : '';
-  const colorCls = Math.abs(amount) < 0.005 ? 'text-secondaryLabel' : amount > 0 ? 'text-green' : 'text-tint';
+  const colorCls = Math.abs(amount) < 0.005 ? 'text-secondaryLabel' : amount > 0 ? 'text-green' : 'text-red';
   return (
     <Text className={cn('text-[17px]', colorCls, className)} style={{ fontVariant: ['tabular-nums'] }}>
       {sign}
@@ -148,7 +148,7 @@ export function Loading() {
 }
 
 export function ErrorText({ children }: { children: ReactNode }) {
-  return <Text className="text-tint text-[15px]">{children}</Text>;
+  return <Text className="text-red text-[15px]">{children}</Text>;
 }
 
 export function Empty({ children }: { children: ReactNode }) {
