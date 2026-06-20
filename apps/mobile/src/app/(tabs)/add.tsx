@@ -2,7 +2,7 @@ import { computeSplit, toCents } from '@repo/split-core';
 import { toCreateExpenseParams } from '@repo/splitwise';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, Chip, ErrorText, Screen } from '@/components/ui';
@@ -158,12 +158,13 @@ export default function Add() {
           className="bg-cell2 rounded-2xl px-4 py-3.5 text-label text-center text-[17px]"
         />
 
-        <Pressable
+        <Button
+          label={scanning ? 'Scanning…' : 'Scan a receipt'}
+          variant="ghost"
+          systemImage="doc.viewfinder"
           onPress={onScan}
           disabled={scanning}
-          className="flex-row items-center justify-center gap-2 border border-separator rounded-2xl py-3.5 active:opacity-60">
-          {scanning ? <ActivityIndicator /> : <Text className="text-tint text-[16px]">Scan a receipt</Text>}
-        </Pressable>
+        />
 
         <View className="gap-2">
           <Text className="text-secondaryLabel text-[13px] px-1">Group</Text>
