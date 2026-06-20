@@ -33,33 +33,37 @@ export default function You() {
   }
 
   return (
-    <Screen>
-      <ScrollView contentContainerStyle={{ paddingTop: insets.top + 16, paddingBottom: insets.bottom + 140, paddingHorizontal: 20 }}>
+    <Screen glow="none">
+      <ScrollView contentContainerStyle={{ paddingTop: insets.top + 16, paddingBottom: insets.bottom + 150, paddingHorizontal: 20 }}>
         <View className="items-center mt-2 mb-7">
-          {user.data && <Avatar name={displayName(user.data)} uri={avatarUri(user.data)} size={88} />}
-          {user.data && <Text className="text-white text-xl font-bold mt-3">{displayName(user.data)}</Text>}
-          {user.data?.email ? <Text className="text-muted text-sm mt-0.5">{user.data.email}</Text> : null}
+          {user.data && <Avatar name={displayName(user.data)} uri={avatarUri(user.data)} size={92} />}
+          {user.data && <Text className="text-text text-xl font-display mt-3">{displayName(user.data)}</Text>}
+          {user.data?.email ? <Text className="text-muted text-sm mt-0.5 font-body">{user.data.email}</Text> : null}
           {user.data?.default_currency ? (
-            <Text className="text-muted text-xs mt-1">default currency · {user.data.default_currency}</Text>
+            <Text className="text-faint text-xs mt-1 font-body">default currency · {user.data.default_currency}</Text>
           ) : null}
         </View>
 
-        <Text className="text-muted text-xs uppercase tracking-wide mb-2">splitwise</Text>
+        <Text className="text-muted text-[11px] uppercase mb-2 font-body-medium" style={{ letterSpacing: 1.4 }}>
+          splitwise
+        </Text>
         <Card className="gap-3">
           <SecretInput value={swKey} onChangeText={setSwKey} placeholder="splitwise api key" />
-          <Button label="Update key" onPress={() => void setApiKey(swKey.trim())} />
+          <Button label="update key" onPress={() => void setApiKey(swKey.trim())} />
         </Card>
 
-        <Text className="text-muted text-xs uppercase tracking-wide mb-2 mt-6">receipt scanning · gemini</Text>
+        <Text className="text-muted text-[11px] uppercase mb-2 mt-6 font-body-medium" style={{ letterSpacing: 1.4 }}>
+          receipt scanning · gemini
+        </Text>
         <Card className="gap-3">
-          <SecretInput value={gemKey} onChangeText={setGemKey} placeholder="gemini api key (aistudio.google.com)" />
+          <SecretInput value={gemKey} onChangeText={setGemKey} placeholder="gemini api key" />
           <View className="flex-row gap-3">
             <View className="flex-1">
-              <Button label="Save key" onPress={() => void setGeminiKey(gemKey.trim())} disabled={!gemKey.trim()} />
+              <Button label="save key" onPress={() => void setGeminiKey(gemKey.trim())} disabled={!gemKey.trim()} />
             </View>
             <View className="flex-1">
               <Button
-                label="Clear"
+                label="clear"
                 variant="ghost"
                 onPress={() => {
                   setGemKey('');
@@ -71,14 +75,14 @@ export default function You() {
         </Card>
 
         <View className="h-7" />
-        <Button label="Sign out" variant="danger" onPress={signOut} />
+        <Button label="sign out" variant="danger" onPress={signOut} />
 
-        <View className="items-center mt-12 gap-1">
-          <Wordmark className="text-base" />
-          <Text className="text-muted text-xs">a faster splitwise · built to replace the app, keep the account</Text>
-          <Text className="text-muted text-xs">
+        <View className="items-center mt-12 gap-1.5">
+          <Wordmark className="text-lg" />
+          <Text className="text-faint text-xs font-body">faster splitwise · keep the account, lose the app</Text>
+          <Text className="text-faint text-xs font-body">
             made by{' '}
-            <Text className="text-brand-soft" onPress={() => void Linking.openURL('https://jass.gg')}>
+            <Text className="text-volt" onPress={() => void Linking.openURL('https://jass.gg')}>
               jass
             </Text>
           </Text>

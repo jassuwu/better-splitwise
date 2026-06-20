@@ -26,18 +26,18 @@ export default function Onboarding() {
   }
 
   return (
-    <Screen>
-      <ScrollView contentContainerStyle={{ paddingTop: insets.top + 80, paddingHorizontal: 24, paddingBottom: 40 }}>
-        <Wordmark className="text-3xl" />
-        <Text className="text-muted text-base mt-3 leading-relaxed">
-          a faster Splitwise. connect your account — your key stays on this device, nothing leaves it.
+    <Screen glow="volt">
+      <ScrollView contentContainerStyle={{ paddingTop: insets.top + 90, paddingHorizontal: 24, paddingBottom: 40 }}>
+        <Wordmark className="text-4xl" />
+        <Text className="text-muted text-base mt-4 leading-relaxed font-body">
+          a faster splitwise. connect your account — your key stays on this device, nothing leaves it.
         </Text>
-        <View className="h-8" />
+        <View className="h-9" />
         <Card className="gap-3">
-          <Text className="text-white font-semibold">Splitwise API key</Text>
-          <Text className="text-muted text-xs">dev.splitwise.com → register an app → your API key</Text>
+          <Text className="text-text font-body-semibold">splitwise api key</Text>
+          <Text className="text-faint text-xs font-body">dev.splitwise.com → register an app → your API key</Text>
           <SecretInput value={key} onChangeText={setKey} placeholder="paste your api key" />
-          <Button label={saving ? 'connecting…' : 'Connect Splitwise'} onPress={connect} disabled={saving} />
+          <Button label={saving ? 'connecting…' : 'connect splitwise'} onPress={connect} disabled={saving} />
         </Card>
       </ScrollView>
     </Screen>
