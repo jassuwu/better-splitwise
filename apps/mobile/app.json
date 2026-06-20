@@ -1,14 +1,15 @@
 {
   "expo": {
-    "name": "super-splitwise",
-    "slug": "super-splitwise",
+    "name": "better splitwise",
+    "slug": "better-splitwise",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "supersplitwise",
+    "scheme": "bettersplitwise",
     "userInterfaceStyle": "dark",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.anonymous.better-splitwise"
     },
     "android": {
       "adaptiveIcon": {
@@ -17,7 +18,10 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "static",
@@ -40,8 +44,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "super-splitwise reads receipt photos you pick so it can itemize a bill.",
-          "cameraPermission": "super-splitwise uses the camera to scan receipts."
+          "photosPermission": "better splitwise reads receipt photos you pick so it can itemize a bill.",
+          "cameraPermission": "better splitwise uses the camera to scan receipts."
         }
       ]
     ],

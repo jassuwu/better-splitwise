@@ -82,7 +82,7 @@ export default function You() {
 
         <View className="items-center mt-10 gap-1.5">
           <Wordmark className="text-[17px]" />
-          <Text className="text-tertiaryLabel text-[13px]">A faster Splitwise · keep the account, lose the app</Text>
+          <Text className="text-tertiaryLabel text-[13px]">A better Splitwise · keep the account, lose the app</Text>
           <Text className="text-tertiaryLabel text-[13px]">
             Made by{' '}
             <Text className="text-tint" onPress={() => void Linking.openURL('https://jass.gg')}>

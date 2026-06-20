@@ -30,7 +30,7 @@ export default function Onboarding() {
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 80, paddingHorizontal: 20, paddingBottom: 40 }}>
         <Wordmark className="text-[34px]" />
         <Text className="text-secondaryLabel text-[17px] mt-4" style={{ lineHeight: 24 }}>
-          A faster Splitwise. Connect your account — your key stays on this device, nothing leaves it.
+          A better Splitwise. Connect your account — your key stays on this device, nothing leaves it.
         </Text>
         <View className="h-8" />
         <Card className="gap-3">
