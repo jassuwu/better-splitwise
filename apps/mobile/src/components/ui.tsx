@@ -1,55 +1,65 @@
-import { GlassContainer, GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
-import type { ReactNode } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Children, type ReactNode } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { AtmosphereField, type Glow } from '@/components/atmosphere';
 import { PressableScale } from '@/components/press';
 import { cn } from '@/lib/cn';
 
-export function Screen({ children, glow = 'volt' }: { children: ReactNode; glow?: Glow }) {
-  return (
-    <View className="flex-1 bg-ink">
-      <AtmosphereField glow={glow} />
-      {children}
-    </View>
-  );
+export function Screen({ children }: { children: ReactNode }) {
+  return <View className="flex-1 bg-groupedBg">{children}</View>;
 }
 
-/** The big balance number: eyebrow + DM-Mono figure, cents dimmed, coloured by standing. */
-export function Hero({
-  eyebrow,
-  amount,
-  currency,
-  sign,
+/** An inset-grouped section: optional sentence-case header + an opaque rounded card of rows. */
+export function Section({
+  children,
+  header,
+  sepInset = 16,
+  className,
 }: {
-  eyebrow: string;
-  amount: number;
-  currency: string;
-  sign: 'owed' | 'owe' | 'settled';
+  children: ReactNode;
+  header?: string;
+  sepInset?: number;
+  className?: string;
 }) {
-  const color = sign === 'owed' ? 'text-owed' : sign === 'owe' ? 'text-owe' : 'text-text';
-  const [whole, cents] = Math.abs(amount).toFixed(2).split('.');
+  const items = Children.toArray(children);
   return (
-    <View className="items-center py-7">
-      <Text className="text-muted text-[11px] font-body-medium uppercase mb-3" style={{ letterSpacing: 1.6 }}>
-        {eyebrow}
-      </Text>
-      <View className="flex-row items-baseline">
-        {currency ? <Text className="text-faint font-mono text-xl mr-1.5">{currency}</Text> : null}
-        <Text className={cn('font-mono text-6xl', color)} style={{ letterSpacing: -1.5 }}>
-          {whole}
-        </Text>
-        <Text className={cn('font-mono text-3xl', color)} style={{ opacity: 0.45 }}>
-          .{cents}
-        </Text>
+    <View className={cn('mb-6', className)}>
+      {header ? <Text className="text-secondaryLabel text-[13px] px-4 pb-2">{header}</Text> : null}
+      <View className="bg-cell rounded-2xl overflow-hidden">
+        {items.map((child, i) => (
+          <View key={i}>
+            {i > 0 ? (
+              <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(84,84,88,0.6)', marginLeft: sepInset }} />
+            ) : null}
+            {child}
+          </View>
+        ))}
       </View>
     </View>
   );
 }
 
-/** A matte data card. */
+export function Row({ children, onPress }: { children: ReactNode; onPress?: () => void }) {
+  const content = (
+    <View className="flex-row items-center gap-3 px-4" style={{ minHeight: 44, paddingVertical: 11 }}>
+      {children}
+    </View>
+  );
+  if (!onPress) return content;
+  return (
+    <Pressable onPress={onPress} style={({ pressed }) => (pressed ? { backgroundColor: '#2C2C2E' } : undefined)}>
+      {content}
+    </Pressable>
+  );
+}
+
+export function Chevron() {
+  return <Ionicons name="chevron-forward" size={16} color="rgba(235,235,245,0.3)" />;
+}
+
+/** A generic opaque grouped container for non-list content. */
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
-  return <View className={cn('bg-surface rounded-3xl p-4 border border-hairline', className)}>{children}</View>;
+  return <View className={cn('bg-cell rounded-2xl p-4', className)}>{children}</View>;
 }
 
 type ButtonVariant = 'primary' | 'ghost' | 'danger';
@@ -67,14 +77,16 @@ export function Button({
   variant?: ButtonVariant;
   className?: string;
 }) {
-  const shell = variant === 'primary' ? 'bg-volt' : variant === 'danger' ? 'border border-owe' : 'border border-hairline';
-  const text = variant === 'primary' ? 'text-ink' : variant === 'danger' ? 'text-owe' : 'text-text';
+  const shell = variant === 'primary' ? 'bg-tint' : variant === 'ghost' ? 'border border-separator' : '';
+  const text = variant === 'primary' ? 'text-white' : variant === 'danger' ? 'text-tint' : 'text-label';
   return (
     <PressableScale
       onPress={onPress}
       disabled={disabled}
-      className={cn('rounded-2xl py-3.5 items-center', shell, disabled && 'opacity-50', className)}>
-      <Text className={cn('font-body-semibold text-base', text)}>{label}</Text>
+      className={cn('rounded-2xl items-center justify-center px-4', shell, disabled && 'opacity-40', className)}>
+      <View style={{ minHeight: 50, justifyContent: 'center' }}>
+        <Text className={cn('text-[17px] font-semibold', text)}>{label}</Text>
+      </View>
     </PressableScale>
   );
 }
@@ -83,17 +95,47 @@ export function Chip({ label, active, onPress }: { label: string; active?: boole
   return (
     <PressableScale
       onPress={onPress}
-      className={cn('rounded-full px-4 py-2 border', active ? 'bg-volt/10 border-volt' : 'border-hairline')}>
-      <Text className={cn('text-sm font-body-medium', active ? 'text-volt' : 'text-muted')}>{label}</Text>
+      className={cn('rounded-full px-4 py-2', active ? 'border border-tint' : 'bg-fill3')}>
+      <Text className={cn('text-[15px]', active ? 'text-tint' : 'text-label')}>{label}</Text>
     </PressableScale>
+  );
+}
+
+/** The big balance figure — SF Pro, tabular, semantic colour, cents same size. */
+export function Hero({
+  eyebrow,
+  amount,
+  currency,
+  sign,
+}: {
+  eyebrow: string;
+  amount: number;
+  currency: string;
+  sign: 'owed' | 'owe' | 'settled';
+}) {
+  const colorCls = sign === 'owed' ? 'text-green' : sign === 'owe' ? 'text-tint' : 'text-secondaryLabel';
+  return (
+    <View className="items-center py-6">
+      <Text className="text-secondaryLabel text-[13px] mb-2">{eyebrow}</Text>
+      <View className="flex-row items-baseline">
+        {currency ? (
+          <Text className="text-secondaryLabel" style={{ fontSize: 24, fontWeight: '600' }}>
+            {currency}{' '}
+          </Text>
+        ) : null}
+        <Text className={colorCls} style={{ fontSize: 52, fontWeight: '700', fontVariant: ['tabular-nums'] }}>
+          {Math.abs(amount).toFixed(2)}
+        </Text>
+      </View>
+    </View>
   );
 }
 
 export function Money({ amount, currency, className }: { amount: number; currency: string; className?: string }) {
   const sign = amount < 0 ? '-' : '';
-  const color = Math.abs(amount) < 0.005 ? 'text-faint' : amount > 0 ? 'text-owed' : 'text-owe';
+  const colorCls = Math.abs(amount) < 0.005 ? 'text-secondaryLabel' : amount > 0 ? 'text-green' : 'text-tint';
   return (
-    <Text className={cn('font-mono', color, className)} style={{ fontVariant: ['tabular-nums'] }}>
+    <Text className={cn('text-[17px]', colorCls, className)} style={{ fontVariant: ['tabular-nums'] }}>
       {sign}
       {currency ? `${currency} ` : ''}
       {Math.abs(amount).toFixed(2)}
@@ -101,44 +143,14 @@ export function Money({ amount, currency, className }: { amount: number; currenc
   );
 }
 
-/** A list whose rows merge into one continuous smoked-glass sheet (iOS 26 liquid-merge). */
-export function GlassList({ children }: { children: ReactNode }) {
-  if (isLiquidGlassAvailable()) {
-    return (
-      <GlassContainer spacing={10} style={{ gap: 8 }}>
-        {children}
-      </GlassContainer>
-    );
-  }
-  return <View className="gap-2">{children}</View>;
-}
-
-export function GlassRow({ children, onPress }: { children: ReactNode; onPress?: () => void }) {
-  const inner = <View className="p-4 flex-row items-center gap-3">{children}</View>;
-  if (isLiquidGlassAvailable()) {
-    return (
-      <PressableScale onPress={onPress}>
-        <GlassView glassEffectStyle="regular" tintColor="rgba(22,26,32,0.55)" style={{ borderRadius: 24, overflow: 'hidden' }}>
-          {inner}
-        </GlassView>
-      </PressableScale>
-    );
-  }
-  return (
-    <PressableScale onPress={onPress} className="bg-surface rounded-3xl border border-hairline">
-      {inner}
-    </PressableScale>
-  );
-}
-
 export function Loading() {
-  return <ActivityIndicator className="my-8" color="#B8FF3C" />;
+  return <ActivityIndicator className="my-8" />;
 }
 
 export function ErrorText({ children }: { children: ReactNode }) {
-  return <Text className="text-owe text-sm font-body">{children}</Text>;
+  return <Text className="text-tint text-[15px]">{children}</Text>;
 }
 
 export function Empty({ children }: { children: ReactNode }) {
-  return <Text className="text-muted text-center my-8 font-body">{children}</Text>;
+  return <Text className="text-secondaryLabel text-center my-8 text-[15px]">{children}</Text>;
 }
