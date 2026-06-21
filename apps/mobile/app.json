@@ -45,7 +45,8 @@
           "photosPermission": "better splitwise reads receipt photos you pick so it can itemize a bill.",
           "cameraPermission": "better splitwise uses the camera to scan receipts."
         }
-      ]
+      ],
+      "expo-quick-actions"
     ],
     "experiments": {
       "typedRoutes": true,
