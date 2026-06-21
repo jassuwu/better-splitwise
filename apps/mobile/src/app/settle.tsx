@@ -1,137 +1,159 @@
-import { computeSplit, toCents } from '@repo/split-core';
-import { toCreateExpenseParams } from '@repo/splitwise';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
-import { ScrollView, Text, TextInput, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
-import { Button, Chip, ErrorText, Screen } from '@/components/ui';
-import { firstName } from '@/lib/format';
-import { useCreateExpense, useCurrentUser, useGroups } from '@/lib/queries';
+import { Avatar } from '@/components/avatar';
+import { Button, Chevron, Empty, Loading, Money, Row, Screen, Section } from '@/components/ui';
+import { avatarUri, displayName, firstName, netBalance } from '@/lib/format';
+import { useCurrentUser, useFriend, useGroups, useSettleUp } from '@/lib/queries';
 
 export default function Settle() {
   const params = useLocalSearchParams<{ groupId?: string; friendId?: string }>();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const friendId = Number(params.friendId);
+  const groupId = params.groupId !== undefined ? Number(params.groupId) : null;
+
   const user = useCurrentUser();
+  const friend = useFriend(friendId);
   const groups = useGroups();
-  const create = useCreateExpense();
-
-  const [groupId, setGroupId] = useState<number | null>(params.groupId ? Number(params.groupId) : null);
-  const [from, setFrom] = useState<number | null>(null);
-  const [to, setTo] = useState<number | null>(null);
-  const [amount, setAmount] = useState('');
-  const [currency, setCurrency] = useState('INR');
-  const [error, setError] = useState<string | null>(null);
-
+  const settle = useSettleUp();
   const me = user.data?.id ?? null;
-  const friendId = params.friendId ? Number(params.friendId) : null;
-  const group = useMemo(() => groups.data?.find((g) => g.id === groupId) ?? null, [groups.data, groupId]);
-  const members = group?.members ?? [];
 
+  const groupName = (gid: number) =>
+    gid === 0 ? 'Non-group' : (groups.data?.find((g) => g.id === gid)?.name ?? `Group ${gid}`);
+
+  // the per-group balance for the chosen group (signed: + = friend owes me)
+  const bal = groupId !== null ? (friend.data?.groups?.find((g) => g.group_id === groupId)?.balance ?? []) : [];
+  const net = netBalance(bal);
+  const friendOwesMe = net.amount > 0;
+  const amountFull = Math.abs(net.amount);
+
+  const [amount, setAmount] = useState('');
   useEffect(() => {
-    if (user.data?.default_currency) setCurrency(user.data.default_currency);
-  }, [user.data?.default_currency]);
+    if (groupId !== null && amountFull > 0) setAmount(amountFull.toFixed(2));
+  }, [groupId, amountFull]);
 
-  useEffect(() => {
-    if (group) {
-      setFrom(group.members.find((m) => m.id === me)?.id ?? group.members[0]?.id ?? null);
-      setTo(group.members.find((m) => m.id === friendId)?.id ?? group.members.find((m) => m.id !== me)?.id ?? null);
-    }
-  }, [group, me, friendId]);
+  const header = (
+    <Stack.Screen
+      options={{
+        headerLeft: () => (
+          <Pressable onPress={() => router.back()} hitSlop={10}>
+            <Ionicons name="close" size={26} color="#d4fd80" />
+          </Pressable>
+        ),
+      }}
+    />
+  );
 
+  if (user.isLoading || friend.isLoading) {
+    return (
+      <Screen>
+        {header}
+        <Loading />
+      </Screen>
+    );
+  }
+
+  // MODE 2 — no group chosen: pick which balance to settle (per-group, with amounts)
+  if (groupId === null) {
+    const balances = (friend.data?.groups ?? [])
+      .map((g) => ({ gid: g.group_id, net: netBalance(g.balance) }))
+      .filter((x) => Math.abs(x.net.amount) > 0.005);
+    return (
+      <Screen>
+        {header}
+        <ScrollView contentContainerStyle={{ paddingTop: 16, paddingBottom: insets.bottom + 24, paddingHorizontal: 16 }}>
+          <Text className="text-secondaryLabel text-[15px] px-1 mb-3">
+            {friend.data ? `Settle with ${firstName(friend.data)}` : 'Settle up'}
+          </Text>
+          {balances.length === 0 ? (
+            <Empty>All settled up.</Empty>
+          ) : (
+            <Section header="Pick a balance">
+              {balances.map(({ gid, net: gn }) => (
+                <Row key={gid} onPress={() => router.replace(`/settle?groupId=${gid}&friendId=${friendId}`)}>
+                  <Text className="flex-1 text-label text-[17px]" numberOfLines={1}>
+                    {groupName(gid)}
+                  </Text>
+                  <Money amount={gn.amount} currency={gn.currency} />
+                  <Chevron />
+                </Row>
+              ))}
+            </Section>
+          )}
+        </ScrollView>
+      </Screen>
+    );
+  }
+
+  // MODE 1 — settle a specific debt, pre-filled and scoped to this group (0 = non-group)
+  const settled = amountFull < 0.005;
   function record() {
-    setError(null);
-    if (!group || from === null || to === null) {
-      setError('Pick who paid whom');
+    if (me === null || !friend.data || groupId === null) return;
+    const value = Number(amount);
+    if (!Number.isFinite(value) || value <= 0) {
+      toast('Enter a valid amount');
       return;
     }
-    if (from === to) {
-      setError('Payer and payee must differ');
-      return;
-    }
-    let cents: number;
-    try {
-      cents = toCents(amount);
-    } catch {
-      setError('Enter a valid amount');
-      return;
-    }
-    const userIds = { [String(from)]: from, [String(to)]: to };
-    const split = computeSplit({
-      currency,
-      people: [String(from), String(to)],
-      items: [{ id: 'settle', label: 'settlement', total: cents, assignees: [String(to)] }],
-    });
-    create.mutate(
+    settle.mutate(
       {
-        params: toCreateExpenseParams(split, {
-          groupId: group.id,
-          description: 'settle up',
-          payerId: String(from),
-          userIds,
-          currencyCode: currency,
-          payment: true,
-        }),
+        groupId,
+        debtorId: friendOwesMe ? friendId : me,
+        creditorId: friendOwesMe ? me : friendId,
+        amount: value.toFixed(2),
+        currencyCode: net.currency || user.data?.default_currency || 'USD',
+        description: 'Settle up',
       },
-      { onSuccess: () => router.back(), onError: (e) => setError(e instanceof Error ? e.message : String(e)) },
+      {
+        onSuccess: () => {
+          toast('Settled up');
+          router.back();
+        },
+        onError: (e) => toast('Could not settle', { description: e instanceof Error ? e.message : String(e) }),
+      },
     );
   }
 
   return (
     <Screen>
-      <ScrollView contentContainerStyle={{ paddingTop: 12, paddingBottom: insets.bottom + 24, paddingHorizontal: 16, gap: 18 }}>
-        <View className="gap-2">
-          <Text className="text-secondaryLabel text-[13px] px-1">Group</Text>
-          <View className="flex-row flex-wrap gap-2">
-            {(groups.data ?? []).map((g) => (
-              <Chip key={g.id} label={g.name} active={groupId === g.id} onPress={() => setGroupId(g.id)} />
-            ))}
-          </View>
+      {header}
+      <ScrollView contentContainerStyle={{ paddingTop: 20, paddingBottom: insets.bottom + 24, paddingHorizontal: 16 }}>
+        <View className="items-center gap-3 mb-7">
+          {friend.data ? <Avatar name={displayName(friend.data)} uri={avatarUri(friend.data)} size={64} /> : null}
+          <Text className="text-secondaryLabel text-[15px]">in {groupName(groupId)}</Text>
+          <Text className="text-label text-[17px]">
+            {settled
+              ? 'All settled up'
+              : friendOwesMe
+                ? `${friend.data ? firstName(friend.data) : 'They'} owe you`
+                : `You owe ${friend.data ? firstName(friend.data) : 'them'}`}
+          </Text>
         </View>
 
-        {group && (
+        {settled ? null : (
           <>
-            <View className="gap-2">
-              <Text className="text-secondaryLabel text-[13px] px-1">From (paid)</Text>
-              <View className="flex-row flex-wrap gap-2">
-                {members.map((m) => (
-                  <Chip key={m.id} label={firstName(m)} active={from === m.id} onPress={() => setFrom(m.id)} />
-                ))}
-              </View>
-            </View>
-            <View className="gap-2">
-              <Text className="text-secondaryLabel text-[13px] px-1">To</Text>
-              <View className="flex-row flex-wrap gap-2">
-                {members.map((m) => (
-                  <Chip key={m.id} label={firstName(m)} active={to === m.id} onPress={() => setTo(m.id)} />
-                ))}
-              </View>
-            </View>
-            <View className="flex-row gap-2">
+            <View className="bg-cell rounded-2xl flex-row items-center px-4 mb-6" style={{ minHeight: 60 }}>
+              <Text className="text-secondaryLabel text-[20px]">{net.currency} </Text>
               <TextInput
                 value={amount}
                 onChangeText={setAmount}
-                placeholder="Amount"
-                placeholderTextColor="rgba(235,235,245,0.3)"
                 keyboardType="decimal-pad"
-                className="flex-1 bg-cell2 rounded-2xl px-4 py-3.5 text-label text-[17px]"
-                style={{ fontVariant: ['tabular-nums'] }}
-              />
-              <TextInput
-                value={currency}
-                onChangeText={setCurrency}
-                autoCapitalize="characters"
-                autoCorrect={false}
-                maxLength={3}
-                className="w-20 bg-cell2 rounded-2xl px-4 py-3.5 text-label text-center text-[17px]"
+                selectTextOnFocus
+                className="flex-1 text-label"
+                style={{ fontVariant: ['tabular-nums'], fontWeight: '600', fontSize: 28 }}
               />
             </View>
+            <Button
+              label={settle.isPending ? 'Settling…' : 'Settle up'}
+              onPress={record}
+              disabled={settle.isPending}
+            />
           </>
         )}
-
-        {error && <ErrorText>{error}</ErrorText>}
-        <Button label={create.isPending ? 'Recording…' : 'Record payment'} onPress={record} disabled={create.isPending} />
       </ScrollView>
     </Screen>
   );
