@@ -20,6 +20,8 @@ export interface SplitwiseUser {
   default_currency?: string | null;
   balance?: Balance[];
   groups?: { group_id: number; balance: Balance[] }[];
+  /** "confirmed" once they've joined Splitwise; "invited"/"dummy" while a pending invite. */
+  registration_status?: "confirmed" | "dummy" | "invited" | string;
   picture?: { small?: string | null; medium?: string | null; large?: string | null } | null;
 }
 
@@ -83,3 +85,45 @@ export interface GetExpensesParams {
 
 /** Flattened create_expense body — Splitwise's by-shares wire format (`users__0__user_id`, ...). */
 export type CreateExpenseParams = Record<string, string | number | boolean>;
+
+export type GroupType = "home" | "trip" | "couple" | "apartment" | "house" | "other";
+
+/** A person to invite to Splitwise by email (Splitwise emails them an invite). */
+export interface InviteUser {
+  email: string;
+  first_name?: string;
+  last_name?: string;
+}
+
+/** Structured create_group input; existing members by id, or invites by email. */
+export interface CreateGroupInput {
+  name: string;
+  group_type?: GroupType;
+  simplify_by_default?: boolean;
+  members?: ({ user_id: number } | InviteUser)[];
+}
+
+/** Flattened create_group body (`users__0__user_id` | `users__0__email`, ...). */
+export type CreateGroupParams = Record<string, string | number | boolean>;
+
+/** add_user_to_group: an existing user by id, or an invite by email. */
+export interface AddUserToGroupParams {
+  group_id: number;
+  user_id?: number;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+}
+
+/** create_friend uses these odd `user_`-prefixed keys (the bulk endpoint differs). */
+export interface CreateFriendParams {
+  user_email: string;
+  user_first_name?: string;
+  user_last_name?: string;
+}
+
+/** Splitwise write endpoints that signal via a `success` boolean (and may 200 with empty `errors`). */
+export interface SuccessResponse {
+  success?: boolean;
+  errors?: unknown;
+}

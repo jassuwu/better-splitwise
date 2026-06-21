@@ -75,4 +75,29 @@ describe("SplitwiseClient", () => {
     await expect(client.getCurrentUser()).rejects.toBeInstanceOf(SplitwiseRateLimitError);
     await expect(client.getCurrentUser()).rejects.toMatchObject({ retryAfterSeconds: 42 });
   });
+
+  it("createGroup posts to create_group and unwraps the group", async () => {
+    const fetchImpl = vi.fn<typeof fetch>(async () => mockResponse({ group: { id: 99, name: "Goa", members: [] } }));
+    const client = new SplitwiseClient({ token: "k", fetch: fetchImpl });
+    const g = await client.createGroup({ name: "Goa", group_type: "trip" });
+    expect(g.id).toBe(99);
+    expect(String(fetchImpl.mock.calls[0]?.[0])).toContain("/create_group");
+  });
+
+  it("throws on a success:false write even with empty errors", async () => {
+    const fetchImpl = vi.fn<typeof fetch>(async () => mockResponse({ success: false, errors: {} }));
+    const client = new SplitwiseClient({ token: "k", fetch: fetchImpl });
+    await expect(client.removeUserFromGroup(1, 2)).rejects.toBeInstanceOf(SplitwiseConstraintError);
+  });
+
+  it("settleUp posts a payment with the debtor paying the creditor", async () => {
+    const fetchImpl = vi.fn<typeof fetch>(async () => mockResponse({ expenses: [{ id: 3, payment: true }] }));
+    const client = new SplitwiseClient({ token: "k", fetch: fetchImpl });
+    const e = await client.settleUp({ groupId: 5, debtorId: 7, creditorId: 9, amount: "10", currencyCode: "INR" });
+    expect(e.id).toBe(3);
+    const body = JSON.parse(String(fetchImpl.mock.calls[0]?.[1]?.body));
+    expect(body.payment).toBe(true);
+    expect(body["users__0__user_id"]).toBe(7);
+    expect(body.group_id).toBe(5);
+  });
 });

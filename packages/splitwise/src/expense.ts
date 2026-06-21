@@ -74,3 +74,42 @@ export function formatItemizationComment(split: SplitResult, names: Record<strin
   });
   return [`split by item via super-splitwise · ${split.currency}`, ...lines].join("\n");
 }
+
+export interface SettleInput {
+  /** 0 for a non-group settle. */
+  groupId: number;
+  /** Pays the creditor. */
+  debtorId: number;
+  /** Receives the payment. */
+  creditorId: number;
+  /** Positive amount owed. */
+  amount: string | number;
+  currencyCode: string;
+  description?: string;
+  date?: string;
+}
+
+/**
+ * Build a two-line settle-up payment: the debtor pays the creditor `amount`
+ * scoped to `groupId` (0 = non-group). This zeroes that exact debt. The
+ * direction is load-bearing — derive debtor/creditor from the displayed debt,
+ * not from "me" — otherwise a settle creates a fresh debt instead of clearing it.
+ */
+export function buildSettleParams(input: SettleInput): CreateExpenseParams {
+  const amount = Number(input.amount).toFixed(2);
+  const params: CreateExpenseParams = {
+    cost: amount,
+    description: input.description ?? "Settle up",
+    group_id: input.groupId,
+    currency_code: input.currencyCode,
+    payment: true,
+    users__0__user_id: input.debtorId,
+    users__0__paid_share: amount,
+    users__0__owed_share: "0.00",
+    users__1__user_id: input.creditorId,
+    users__1__paid_share: "0.00",
+    users__1__owed_share: amount,
+  };
+  if (input.date) params.date = input.date;
+  return params;
+}

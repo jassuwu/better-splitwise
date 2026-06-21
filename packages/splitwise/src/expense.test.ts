@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { computeSplit } from "@repo/split-core";
-import { toCreateExpenseParams, formatItemizationComment } from "./expense";
+import { buildSettleParams, toCreateExpenseParams, formatItemizationComment } from "./expense";
 
 const split = computeSplit({
   currency: "USD",
@@ -51,6 +51,28 @@ describe("toCreateExpenseParams", () => {
     expect(() =>
       toCreateExpenseParams(split, { groupId: 0, description: "x", payerId: "alice", userIds: { alice: 1 } }),
     ).toThrow();
+  });
+});
+
+describe("buildSettleParams", () => {
+  it("makes the debtor pay the creditor the exact amount, scoped to the group", () => {
+    const p = buildSettleParams({ groupId: 5, debtorId: 7, creditorId: 9, amount: "12.5", currencyCode: "INR" });
+    expect(p.cost).toBe("12.50");
+    expect(p.group_id).toBe(5);
+    expect(p.payment).toBe(true);
+    expect(p["users__0__user_id"]).toBe(7);
+    expect(p["users__0__paid_share"]).toBe("12.50");
+    expect(p["users__0__owed_share"]).toBe("0.00");
+    expect(p["users__1__user_id"]).toBe(9);
+    expect(p["users__1__paid_share"]).toBe("0.00");
+    expect(p["users__1__owed_share"]).toBe("12.50");
+  });
+
+  it("normalises the amount to 2 decimals and defaults the description", () => {
+    const p = buildSettleParams({ groupId: 0, debtorId: 1, creditorId: 2, amount: 8, currencyCode: "USD" });
+    expect(p.cost).toBe("8.00");
+    expect(p.description).toBe("Settle up");
+    expect(p.group_id).toBe(0);
   });
 });
 

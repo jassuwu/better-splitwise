@@ -4,14 +4,20 @@ import {
   SplitwiseHttpError,
   SplitwiseRateLimitError,
 } from "./errors";
+import { buildSettleParams, type SettleInput } from "./expense";
+import { toCreateGroupParams } from "./group";
 import type {
+  AddUserToGroupParams,
   Comment,
   CreateExpenseParams,
+  CreateFriendParams,
+  CreateGroupInput,
   Expense,
   Friend,
   GetExpensesParams,
   Group,
   SplitwiseUser,
+  SuccessResponse,
 } from "./types";
 
 /** A bearer token: a Splitwise personal API key, an OAuth2 access token, or a (possibly async) provider returning one. */
@@ -104,6 +110,9 @@ export class SplitwiseClient {
   async getFriends(): Promise<Friend[]> {
     return (await this.request<{ friends: Friend[] }>("GET", "get_friends")).friends;
   }
+  async getFriend(id: number): Promise<Friend> {
+    return (await this.request<{ friend: Friend }>("GET", `get_friend/${id}`)).friend;
+  }
   async getExpenses(params: GetExpensesParams = {}): Promise<Expense[]> {
     const query = params as Record<string, string | number | boolean | undefined>;
     return (await this.request<{ expenses: Expense[] }>("GET", "get_expenses", { query })).expenses;
@@ -143,6 +152,54 @@ export class SplitwiseClient {
   async deleteComment(id: number): Promise<void> {
     await this.request<{ comment: Comment }>("POST", `delete_comment/${id}`);
   }
+
+  // --- groups (write) ---
+  async createGroup(input: CreateGroupInput): Promise<Group> {
+    const res = await this.request<{ group?: Group }>("POST", "create_group", {
+      body: toCreateGroupParams(input),
+    });
+    if (!res.group) throw new SplitwiseHttpError(200, "create_group returned no group");
+    return res.group;
+  }
+  /** Add an existing user, or invite a new person by email, into a group. */
+  async addUserToGroup(params: AddUserToGroupParams): Promise<void> {
+    requireSuccess(
+      await this.request<SuccessResponse>("POST", "add_user_to_group", { body: params }),
+      "add_user_to_group",
+    );
+  }
+  async removeUserFromGroup(groupId: number, userId: number): Promise<void> {
+    requireSuccess(
+      await this.request<SuccessResponse>("POST", "remove_user_from_group", {
+        body: { group_id: groupId, user_id: userId },
+      }),
+      "remove_user_from_group",
+    );
+  }
+  /** Leave a group = remove the current user. Fails if you hold a non-zero balance — settle first. */
+  async leaveGroup(groupId: number): Promise<void> {
+    const me = await this.getCurrentUser();
+    return this.removeUserFromGroup(groupId, me.id);
+  }
+  async deleteGroup(id: number): Promise<void> {
+    requireSuccess(await this.request<SuccessResponse>("POST", `delete_group/${id}`), "delete_group");
+  }
+  async undeleteGroup(id: number): Promise<void> {
+    requireSuccess(await this.request<SuccessResponse>("POST", `undelete_group/${id}`), "undelete_group");
+  }
+
+  // --- friends (write) ---
+  /** Add, or invite-by-email, one friend. Splitwise emails people who aren't registered yet. */
+  async createFriend(params: CreateFriendParams): Promise<Friend | undefined> {
+    const res = await this.request<{ friend?: Friend; user?: Friend }>("POST", "create_friend", { body: params });
+    return res.friend ?? res.user;
+  }
+
+  // --- settle (write) ---
+  /** Settle one debt: the debtor pays the creditor, scoped to a group (0 = non-group). */
+  async settleUp(input: SettleInput): Promise<Expense> {
+    return this.createExpense(buildSettleParams(input));
+  }
 }
 
 async function safeText(res: Response): Promise<string> {
@@ -151,6 +208,12 @@ async function safeText(res: Response): Promise<string> {
   } catch {
     return "";
   }
+}
+
+// add/remove/delete/undelete return `{ success }` and can 200 with success:false AND empty errors,
+// so assertNoErrors alone is insufficient — check the flag too.
+function requireSuccess(res: SuccessResponse, op: string): void {
+  if (res.success === false) throw new SplitwiseConstraintError(`${op} failed (success: false)`);
 }
 
 function assertNoErrors(json: unknown): void {
