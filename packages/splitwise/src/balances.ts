@@ -1,4 +1,4 @@
-import type { Balance, Friend, Group } from "./types";
+import type { Group } from "./types";
 
 export interface PairDebt {
   /** Owes the creditor. */
@@ -16,10 +16,8 @@ export interface PairDebt {
  * which case it reads original_debts — match whichever the user sees.
  */
 export function debtBetween(group: Group, meId: number, otherId: number): PairDebt | null {
-  const debts =
-    group.simplify_by_default === false
-      ? (group.original_debts ?? group.simplified_debts)
-      : (group.simplified_debts ?? group.original_debts);
+  // read the same ledger the user sees; don't fall back to the other mode (it can show a different edge)
+  const debts = group.simplify_by_default === false ? group.original_debts : group.simplified_debts;
   const d = (debts ?? []).find(
     (x) => (x.from === meId && x.to === otherId) || (x.from === otherId && x.to === meId),
   );
@@ -37,9 +35,4 @@ export function netWithMember(
   if (!d) return null;
   const signed = Number(d.amount) * (d.creditorId === meId ? 1 : -1);
   return { amount: signed, currencyCode: d.currencyCode };
-}
-
-/** Per-group balance with a friend from get_friends (group_id 0 = non-group). +amount = friend owes me. */
-export function friendGroupBalance(friend: Friend, groupId: number): Balance | null {
-  return friend.groups?.find((g) => g.group_id === groupId)?.balance?.[0] ?? null;
 }

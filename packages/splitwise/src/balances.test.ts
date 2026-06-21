@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { debtBetween, friendGroupBalance, netWithMember } from "./balances";
-import type { Friend, Group } from "./types";
+import { debtBetween, netWithMember } from "./balances";
+import type { Group } from "./types";
 
 const group: Group = {
   id: 1,
@@ -38,24 +38,5 @@ describe("netWithMember", () => {
   });
   it("is null when settled", () => {
     expect(netWithMember(group, 7, 100)).toBeNull();
-  });
-});
-
-describe("friendGroupBalance", () => {
-  const friend: Friend = {
-    id: 9,
-    first_name: "Sam",
-    last_name: null,
-    groups: [
-      { group_id: 0, balance: [{ currency_code: "INR", amount: "-8.00" }] },
-      { group_id: 1, balance: [{ currency_code: "INR", amount: "12.50" }] },
-    ],
-  };
-  it("reads the per-group bucket (0 = non-group)", () => {
-    expect(friendGroupBalance(friend, 0)?.amount).toBe("-8.00");
-    expect(friendGroupBalance(friend, 1)?.amount).toBe("12.50");
-  });
-  it("returns null for an unknown group", () => {
-    expect(friendGroupBalance(friend, 99)).toBeNull();
   });
 });

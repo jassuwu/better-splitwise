@@ -45,7 +45,12 @@ export function useFriends(): UseQueryResult<Friend[]> {
 }
 
 export function useExpenses(params: GetExpensesParams): UseQueryResult<Expense[]> {
-  return useQuery({ queryKey: keys.expenses(params), queryFn: () => client().getExpenses(params) });
+  const id = params.group_id ?? params.friend_id;
+  return useQuery({
+    queryKey: keys.expenses(params),
+    queryFn: () => client().getExpenses(params),
+    enabled: id === undefined || Number.isFinite(id),
+  });
 }
 
 export function useExpense(id: number): UseQueryResult<Expense> {
