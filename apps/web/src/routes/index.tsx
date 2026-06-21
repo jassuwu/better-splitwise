@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { useState } from 'react';
 
 import { displayName, netBalance } from '../lib/format';
@@ -119,6 +119,14 @@ function Dashboard() {
           {Math.abs(overall).toFixed(2)}
         </p>
       </section>
+
+      <div className="mt-7">
+        <Link
+          to="/add"
+          className="block w-full rounded-xl bg-brand py-3 text-center font-semibold text-black transition hover:opacity-90">
+          Add an expense
+        </Link>
+      </div>
 
       {friends.isLoading || groups.isLoading ? <p className="mt-8 text-center text-sm text-mut">Loading balances…</p> : null}
 

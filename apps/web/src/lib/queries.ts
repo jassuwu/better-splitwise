@@ -1,5 +1,11 @@
-import { SplitwiseClient, type Friend, type Group, type SplitwiseUser } from '@repo/splitwise';
-import { QueryClient, useQuery } from '@tanstack/react-query';
+import {
+  SplitwiseClient,
+  type CreateExpenseParams,
+  type Friend,
+  type Group,
+  type SplitwiseUser,
+} from '@repo/splitwise';
+import { QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, staleTime: 30_000, refetchOnWindowFocus: false } },
@@ -17,6 +23,17 @@ export function useGroups() {
 }
 export function useFriends() {
   return useQuery<Friend[]>({ queryKey: ['friends'], queryFn: () => client.getFriends() });
+}
+
+export function useCreateExpense() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (params: CreateExpenseParams) => client.createExpense(params),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['groups'] });
+      void qc.invalidateQueries({ queryKey: ['friends'] });
+    },
+  });
 }
 
 export async function login(key: string): Promise<SplitwiseUser> {
