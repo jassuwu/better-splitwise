@@ -1,13 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { netWithMember } from '@repo/splitwise';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { ActionSheetIOS, Alert, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
 import { Avatar } from '@/components/avatar';
 import { ActionRow, Button, Chevron, Empty, ErrorText, Hero, Loading, Money, Row, Screen, Section } from '@/components/ui';
 import { avatarUri, displayName, firstName, money, netBalance } from '@/lib/format';
+import { showActionSheet } from '@/lib/sheet';
 import { useCurrentUser, useDeleteGroup, useExpenses, useGroup, useLeaveGroup } from '@/lib/queries';
 
 export default function GroupDetail() {
@@ -81,22 +82,13 @@ export default function GroupDetail() {
   }
 
   function menu() {
-    if (Platform.OS !== 'ios') {
-      router.push(`/invite?groupId=${id}`);
-      return;
-    }
-    ActionSheetIOS.showActionSheetWithOptions(
-      {
-        options: ['Add people', 'Leave group', 'Delete group', 'Cancel'],
-        destructiveButtonIndex: 2,
-        cancelButtonIndex: 3,
-        userInterfaceStyle: 'dark',
-      },
-      (i) => {
-        if (i === 0) router.push(`/invite?groupId=${id}`);
-        else if (i === 1) confirmLeave();
-        else if (i === 2) confirmDelete();
-      },
+    showActionSheet(
+      [
+        { label: 'Add people', onPress: () => router.push(`/invite?groupId=${id}`) },
+        { label: 'Leave group', destructive: true, onPress: confirmLeave },
+        { label: 'Delete group', destructive: true, onPress: confirmDelete },
+      ],
+      g?.name,
     );
   }
 

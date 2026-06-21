@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Toaster } from 'sonner-native';
 
+import { SheetHost } from '@/components/sheet-host';
 import { AuthProvider } from '@/lib/auth';
 import { queryClient } from '@/lib/query-client';
 
@@ -43,6 +44,7 @@ export default function RootLayout() {
                 actionButtonTextStyle: { color: '#0a0a0a', fontWeight: '600' },
               }}
             />
+            <SheetHost />
             <StatusBar style="light" />
           </AuthProvider>
         </ThemeProvider>

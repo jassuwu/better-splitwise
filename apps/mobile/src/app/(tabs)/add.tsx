@@ -3,7 +3,7 @@ import { fromCents } from '@repo/split-core';
 import { toCreateExpenseParams, type SplitwiseUser } from '@repo/splitwise';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -14,6 +14,7 @@ import { amountToCents, buildSplit, centsToMoney } from '@/lib/amount';
 import { onCurrencyPicked } from '@/lib/currency-picker';
 import { avatarUri, displayName, firstName } from '@/lib/format';
 import { useCreateExpense, useCurrentUser, useDeleteExpense, useFriends, useGroups } from '@/lib/queries';
+import { showPrompt } from '@/lib/sheet';
 import { getDefaultCurrency, getLastGroupId, setLastGroupId } from '@/lib/token-store';
 
 type TargetKind = 'group' | 'nongroup';
@@ -125,31 +126,22 @@ export default function Add() {
   }
 
   function overridePrompt(m: SplitwiseUser) {
-    if (Platform.OS !== 'ios') return;
     const key = String(m.id);
-    const current = overrides[key] !== undefined ? fromCents(overrides[key] as number) : '';
-    Alert.prompt(
-      `${m.id === me ? 'Your' : `${firstName(m)}'s`} share`,
-      'Leave blank to split equally — the rest rebalance.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Set',
-          onPress: (text?: string) => {
-            const cents = text ? amountToCents(text) : 0;
-            setOverrides((o) => {
-              const next = { ...o };
-              if (cents > 0) next[key] = cents;
-              else delete next[key];
-              return next;
-            });
-          },
-        },
-      ],
-      'plain-text',
-      current,
-      'decimal-pad',
-    );
+    showPrompt({
+      title: `${m.id === me ? 'Your' : `${firstName(m)}'s`} share`,
+      message: 'Leave blank to split equally — the rest rebalance.',
+      defaultValue: overrides[key] !== undefined ? fromCents(overrides[key] as number) : '',
+      keyboardType: 'decimal-pad',
+      onSubmit: (text) => {
+        const cents = text ? amountToCents(text) : 0;
+        setOverrides((o) => {
+          const next = { ...o };
+          if (cents > 0) next[key] = cents;
+          else delete next[key];
+          return next;
+        });
+      },
+    });
   }
 
   function reset() {

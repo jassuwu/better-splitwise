@@ -2,34 +2,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { Button as UIButton, Host, Menu, Picker, Text as UIText } from '@expo/ui/swift-ui';
 import { pickerStyle, tag, tint } from '@expo/ui/swift-ui/modifiers';
 import type { ComponentProps } from 'react';
-import { ActionSheetIOS, Platform, Pressable, Text } from 'react-native';
+import { Pressable, Text } from 'react-native';
 import type { SFSymbol } from 'sf-symbols-typescript';
 
 import { nativeGlass } from '@/lib/native-glass';
+import { showActionSheet } from '@/lib/sheet';
 
 export interface MenuItem {
   label: string;
   systemImage?: SFSymbol;
   destructive?: boolean;
   onPress: () => void;
-}
-
-function showSheet(items: MenuItem[], title?: string) {
-  if (Platform.OS !== 'ios') return;
-  const destructiveButtonIndex = items.findIndex((it) => it.destructive);
-  const options = [...items.map((it) => it.label), 'Cancel'];
-  ActionSheetIOS.showActionSheetWithOptions(
-    {
-      options,
-      cancelButtonIndex: options.length - 1,
-      destructiveButtonIndex: destructiveButtonIndex >= 0 ? destructiveButtonIndex : undefined,
-      title,
-      userInterfaceStyle: 'dark',
-    },
-    (i) => {
-      if (i !== undefined && i < items.length) items[i]?.onPress();
-    },
-  );
 }
 
 /** A native iOS 26 Liquid Glass pull-down menu of actions, anchored to an icon button. */
@@ -63,7 +46,7 @@ export function GlassMenu({
   }
   return (
     <Pressable
-      onPress={() => showSheet(items, title)}
+      onPress={() => showActionSheet(items, title)}
       hitSlop={10}
       className="items-center justify-center rounded-full bg-fill3 active:opacity-70"
       style={{ width: 40, height: 40 }}>
@@ -101,7 +84,7 @@ export function MenuPicker<T extends string>({
   return (
     <Pressable
       onPress={() =>
-        showSheet(
+        showActionSheet(
           options.map((o) => ({ label: o.label, onPress: () => onChange(o.value) })),
           title,
         )
