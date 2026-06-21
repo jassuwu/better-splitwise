@@ -16,10 +16,8 @@
         "foregroundImage": "./assets/images/android-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false,
-      "permissions": [
-        "android.permission.RECORD_AUDIO"
-      ],
-      "package": "com.anonymous.bettersplitwise"
+      "permissions": [],
+      "package": "gg.jass.bettersplitwise"
     },
     "web": {
       "output": "static",
