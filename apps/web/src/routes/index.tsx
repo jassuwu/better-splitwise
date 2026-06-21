@@ -28,8 +28,11 @@ function KeyEntry() {
     setBusy(true);
     setErr(null);
     try {
-      await login(key.trim());
-      await qc.invalidateQueries();
+      const user = await login(key.trim());
+      // seed the cache directly — don't rely on invalidate→refetch flipping an errored query
+      qc.setQueryData(['me'], user);
+      void qc.invalidateQueries({ queryKey: ['groups'] });
+      void qc.invalidateQueries({ queryKey: ['friends'] });
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Sign-in failed.');
     } finally {
