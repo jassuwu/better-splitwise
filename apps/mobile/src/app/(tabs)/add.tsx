@@ -13,9 +13,7 @@ import { Button, Row, Screen, Section } from '@/components/ui';
 import { amountToCents, buildSplit, centsToMoney } from '@/lib/amount';
 import { onCurrencyPicked } from '@/lib/currency-picker';
 import { avatarUri, displayName, firstName } from '@/lib/format';
-import { setPendingReceipt } from '@/lib/pending-receipt';
 import { useCreateExpense, useCurrentUser, useDeleteExpense, useFriends, useGroups } from '@/lib/queries';
-import { scanReceipt } from '@/lib/scan';
 import { getDefaultCurrency, getLastGroupId, setLastGroupId } from '@/lib/token-store';
 
 type TargetKind = 'group' | 'nongroup';
@@ -37,8 +35,6 @@ export default function Add() {
   const [payerId, setPayerId] = useState<number | null>(null);
   const [overrides, setOverrides] = useState<Record<string, number>>({});
   const [currency, setCurrency] = useState('USD');
-  const [scanning, setScanning] = useState(false);
-  const [scanned, setScanned] = useState(false);
 
   const me = user.data?.id ?? null;
   const group = useMemo(() => groups.data?.find((g) => g.id === groupId) ?? null, [groups.data, groupId]);
@@ -160,25 +156,6 @@ export default function Add() {
     setAmount('');
     setDescription('');
     setOverrides({});
-    setScanned(false);
-  }
-
-  async function onScan() {
-    setScanning(true);
-    try {
-      const receipt = await scanReceipt('library');
-      if (receipt) {
-        setAmount(receipt.total.toFixed(2));
-        if (receipt.merchant) setDescription(receipt.merchant);
-        if (receipt.currency) setCurrency(receipt.currency);
-        setPendingReceipt(receipt);
-        setScanned(true);
-      }
-    } catch (e) {
-      toast('Scan failed', { description: e instanceof Error ? e.message : String(e) });
-    } finally {
-      setScanning(false);
-    }
   }
 
   function push() {
@@ -326,18 +303,7 @@ export default function Add() {
         </View>
 
         <View className="gap-3">
-          <Button
-            label={scanning ? 'Scanning…' : 'Scan a receipt'}
-            variant="ghost"
-            systemImage="doc.viewfinder"
-            onPress={onScan}
-            disabled={scanning}
-          />
-          {scanned && targetKind === 'group' && group ? (
-            <Pressable onPress={() => router.push(`/assign?groupId=${group.id}`)} className="active:opacity-60">
-              <Text className="text-tint text-center text-[15px]">Split by item instead</Text>
-            </Pressable>
-          ) : null}
+          <Button label="Scan a receipt" variant="ghost" systemImage="doc.viewfinder" onPress={() => router.push('/scan')} />
           <Button label={create.isPending ? 'Adding…' : 'Add expense'} onPress={push} disabled={!valid || create.isPending} />
         </View>
       </ScrollView>

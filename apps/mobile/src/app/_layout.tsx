@@ -24,7 +24,7 @@ export default function RootLayout() {
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="onboarding" options={{ headerShown: false }} />
               <Stack.Screen name="settle" options={{ presentation: 'modal', title: 'Settle up' }} />
-              <Stack.Screen name="assign" options={{ presentation: 'modal', title: 'Split by item' }} />
+              <Stack.Screen name="scan" options={{ presentation: 'fullScreenModal' }} />
               <Stack.Screen name="currency" options={{ presentation: 'modal', title: 'Currency' }} />
               <Stack.Screen name="new-group" options={{ presentation: 'modal', title: 'New group' }} />
               <Stack.Screen name="invite" options={{ presentation: 'modal', title: 'Add people' }} />
