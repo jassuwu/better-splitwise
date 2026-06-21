@@ -57,8 +57,13 @@ export default function Invite() {
     try {
       if (groupId !== null) {
         for (const user_id of selected) await addToGroup.mutateAsync({ group_id: groupId, user_id });
-        for (const inv of invites)
-          await addToGroup.mutateAsync({ group_id: groupId, email: inv.email, first_name: inv.first_name });
+        // add_user_to_group's email-invite variant is poorly documented; mint the friend
+        // first (this also sends the Splitwise invite), then add by the resulting user_id.
+        for (const inv of invites) {
+          const friend = await createFriend.mutateAsync({ user_email: inv.email, user_first_name: inv.first_name });
+          if (friend?.id) await addToGroup.mutateAsync({ group_id: groupId, user_id: friend.id });
+          else await addToGroup.mutateAsync({ group_id: groupId, email: inv.email, first_name: inv.first_name });
+        }
       } else {
         for (const inv of invites) await createFriend.mutateAsync({ user_email: inv.email, user_first_name: inv.first_name });
       }
