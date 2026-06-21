@@ -66,6 +66,60 @@ export function Card({ children, className }: { children: ReactNode; className?:
   return <View className={cn('bg-cell rounded-2xl p-4', className)}>{children}</View>;
 }
 
+/** Picker-screen / navigation row (iOS): title left, optional value (secondary) + chevron right. */
+export function NavRow({
+  title,
+  value,
+  onPress,
+  icon,
+  destructive,
+}: {
+  title: string;
+  value?: string;
+  onPress?: () => void;
+  icon?: ReactNode;
+  destructive?: boolean;
+}) {
+  return (
+    <Row onPress={onPress}>
+      {icon}
+      <Text className={cn('flex-1 text-[17px]', destructive ? 'text-red' : 'text-label')}>{title}</Text>
+      {value ? (
+        <Text className="text-secondaryLabel text-[17px]" style={{ fontVariant: ['tabular-nums'] }}>
+          {value}
+        </Text>
+      ) : null}
+      {onPress && !destructive ? <Chevron /> : null}
+    </Row>
+  );
+}
+
+/** A centered text-button row inside a Section — accent for actions, red for destructive (iOS pattern). */
+export function ActionRow({
+  label,
+  onPress,
+  tone = 'accent',
+  disabled,
+}: {
+  label: string;
+  onPress: () => void;
+  tone?: 'accent' | 'destructive';
+  disabled?: boolean;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      style={({ pressed }) => (pressed ? { backgroundColor: '#2C2C2E' } : undefined)}>
+      <View className="px-4 items-center justify-center" style={{ minHeight: 44, paddingVertical: 11 }}>
+        <Text className={cn('text-[17px]', tone === 'destructive' ? 'text-red' : 'text-tint', disabled && 'opacity-40')}>
+          {label}
+        </Text>
+      </View>
+    </Pressable>
+  );
+}
+
 type ButtonVariant = 'primary' | 'ghost' | 'danger';
 
 export function Button({

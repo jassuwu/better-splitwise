@@ -6,11 +6,21 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Avatar } from '@/components/avatar';
 import { Wordmark } from '@/components/brand';
 import { SecretInput } from '@/components/secret-input';
-import { Button, Card, Screen } from '@/components/ui';
+import { Button, Card, NavRow, Screen, Section } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
+import { onCurrencyPicked } from '@/lib/currency-picker';
 import { avatarUri, displayName } from '@/lib/format';
 import { useCurrentUser } from '@/lib/queries';
-import { clearApiKey, clearGeminiKey, getApiKey, getGeminiKey, setApiKey, setGeminiKey } from '@/lib/token-store';
+import {
+  clearApiKey,
+  clearGeminiKey,
+  getApiKey,
+  getDefaultCurrency,
+  getGeminiKey,
+  setApiKey,
+  setDefaultCurrency,
+  setGeminiKey,
+} from '@/lib/token-store';
 
 export default function You() {
   const insets = useSafeAreaInsets();
@@ -19,11 +29,22 @@ export default function You() {
   const user = useCurrentUser();
   const [swKey, setSwKey] = useState('');
   const [gemKey, setGemKey] = useState('');
+  const [defCur, setDefCur] = useState('');
 
   useEffect(() => {
     void getApiKey().then((k) => setSwKey(k ?? ''));
     void getGeminiKey().then((k) => setGemKey(k ?? ''));
+    void getDefaultCurrency().then((c) => c && setDefCur(c));
   }, []);
+
+  function pickCurrency() {
+    const current = defCur || user.data?.default_currency || 'USD';
+    onCurrencyPicked((code) => {
+      setDefCur(code);
+      void setDefaultCurrency(code);
+    });
+    router.push(`/currency?selected=${current}`);
+  }
 
   async function signOut() {
     await clearApiKey();
@@ -47,10 +68,11 @@ export default function You() {
             </Text>
           )}
           {user.data?.email ? <Text className="text-secondaryLabel text-[15px] mt-0.5">{user.data.email}</Text> : null}
-          {user.data?.default_currency ? (
-            <Text className="text-tertiaryLabel text-[13px] mt-1">Default currency · {user.data.default_currency}</Text>
-          ) : null}
         </View>
+
+        <Section header="Preferences">
+          <NavRow title="Default currency" value={defCur || user.data?.default_currency || '—'} onPress={pickCurrency} />
+        </Section>
 
         <Text className="text-secondaryLabel text-[13px] px-1 mb-2">Splitwise</Text>
         <Card className="gap-3 mb-6">

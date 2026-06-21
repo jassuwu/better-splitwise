@@ -48,3 +48,8 @@ export const getLastGroupId = async (): Promise<number | null> => {
   return v ? Number(v) : null;
 };
 export const setLastGroupId = (id: number) => setKey(LAST_GROUP_KEY, String(id));
+
+// preferred default currency (local override; falls back to the Splitwise account default)
+const DEFAULT_CURRENCY_KEY = 'default_currency';
+export const getDefaultCurrency = () => getKey(DEFAULT_CURRENCY_KEY);
+export const setDefaultCurrency = (code: string) => setKey(DEFAULT_CURRENCY_KEY, code);
