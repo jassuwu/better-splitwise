@@ -1,11 +1,12 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { RefreshControl, ScrollView, Text, View } from 'react-native';
+import { ActionSheetIOS, Platform, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/avatar';
 import { Segmented } from '@/components/segmented';
-import { Chevron, Empty, ErrorText, Hero, Loading, Money, Row, Screen, Section } from '@/components/ui';
+import { Button, Chevron, Empty, ErrorText, Hero, Loading, Money, Row, Screen, Section } from '@/components/ui';
 import { avatarUri, displayName, netBalance } from '@/lib/format';
 import { useCurrentUser, useFriends, useGroups } from '@/lib/queries';
 
@@ -36,6 +37,20 @@ export default function Home() {
   const err = user.error ?? friends.error ?? groups.error;
   const loading = user.isLoading || friends.isLoading || groups.isLoading;
 
+  function addMenu() {
+    if (Platform.OS !== 'ios') {
+      router.push('/new-group');
+      return;
+    }
+    ActionSheetIOS.showActionSheetWithOptions(
+      { options: ['New group', 'Add a person', 'Cancel'], cancelButtonIndex: 2, userInterfaceStyle: 'dark' },
+      (i) => {
+        if (i === 0) router.push('/new-group');
+        else if (i === 1) router.push('/invite');
+      },
+    );
+  }
+
   return (
     <Screen>
       <ScrollView
@@ -50,6 +65,17 @@ export default function Home() {
             }}
           />
         }>
+        <View className="flex-row items-center justify-between mt-1 mb-1">
+          <Text className="text-label" style={{ fontSize: 28, fontWeight: '700' }}>
+            Home
+          </Text>
+          <Pressable
+            onPress={addMenu}
+            className="items-center justify-center rounded-full bg-fill3 active:opacity-70"
+            style={{ width: 40, height: 40 }}>
+            <Ionicons name="add" size={26} color="#d4fd80" />
+          </Pressable>
+        </View>
         <Hero eyebrow={eyebrow} amount={overall} currency={currency} sign={sign} />
 
         <View className="mb-5">
@@ -87,7 +113,12 @@ export default function Home() {
             </Section>
           )
         ) : groupRows.length === 0 && !loading ? (
-          <Empty>No groups yet.</Empty>
+          <View className="items-center mt-2 gap-3">
+            <Empty>No groups yet.</Empty>
+            <View style={{ width: 200 }}>
+              <Button label="New group" onPress={() => router.push('/new-group')} />
+            </View>
+          </View>
         ) : (
           <Section sepInset={64}>
             {groupRows.map(({ g, net }) => (
