@@ -26,11 +26,16 @@ export default function Settle() {
   const groupName = (gid: number) =>
     gid === 0 ? 'Non-group' : (groups.data?.find((g) => g.id === gid)?.name ?? `Group ${gid}`);
 
-  // the per-group balance for the chosen group (signed: + = friend owes me)
-  const bal = groupId !== null ? (friend.data?.groups?.find((g) => g.group_id === groupId)?.balance ?? []) : [];
-  const net = netBalance(bal);
-  const friendOwesMe = net.amount > 0;
-  const amountFull = Math.abs(net.amount);
+  // the per-group balance for the chosen group — settle ONE currency at a time
+  // (a pair can owe in multiple currencies; never sum across them). + = friend owes me.
+  const balEntries = groupId !== null ? (friend.data?.groups?.find((g) => g.group_id === groupId)?.balance ?? []) : [];
+  const primary = [...balEntries]
+    .filter((b) => Math.abs(Number(b.amount)) > 0.005)
+    .sort((a, b) => Math.abs(Number(b.amount)) - Math.abs(Number(a.amount)))[0];
+  const amountSigned = primary ? Number(primary.amount) : 0;
+  const settleCurrency = primary?.currency_code ?? user.data?.default_currency ?? 'USD';
+  const friendOwesMe = amountSigned > 0;
+  const amountFull = Math.abs(amountSigned);
 
   const [amount, setAmount] = useState('');
   useEffect(() => {
@@ -105,7 +110,7 @@ export default function Settle() {
         debtorId: friendOwesMe ? friendId : me,
         creditorId: friendOwesMe ? me : friendId,
         amount: value.toFixed(2),
-        currencyCode: net.currency || user.data?.default_currency || 'USD',
+        currencyCode: settleCurrency,
         description: 'Settle up',
       },
       {
@@ -137,7 +142,7 @@ export default function Settle() {
         {settled ? null : (
           <>
             <View className="bg-cell rounded-2xl flex-row items-center px-4 mb-6" style={{ minHeight: 60 }}>
-              <Text className="text-secondaryLabel text-[20px]">{net.currency} </Text>
+              <Text className="text-secondaryLabel text-[20px]">{settleCurrency} </Text>
               <TextInput
                 value={amount}
                 onChangeText={setAmount}
