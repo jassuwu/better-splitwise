@@ -1,10 +1,10 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActionSheetIOS, Platform, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/avatar';
+import { GlassMenu } from '@/components/menu';
 import { Segmented } from '@/components/segmented';
 import { Button, Chevron, Empty, ErrorText, Hero, Loading, Money, Row, Screen, Section } from '@/components/ui';
 import { avatarUri, displayName, netBalance } from '@/lib/format';
@@ -37,20 +37,6 @@ export default function Home() {
   const err = user.error ?? friends.error ?? groups.error;
   const loading = user.isLoading || friends.isLoading || groups.isLoading;
 
-  function addMenu() {
-    if (Platform.OS !== 'ios') {
-      router.push('/new-group');
-      return;
-    }
-    ActionSheetIOS.showActionSheetWithOptions(
-      { options: ['New group', 'Add a person', 'Cancel'], cancelButtonIndex: 2, userInterfaceStyle: 'dark' },
-      (i) => {
-        if (i === 0) router.push('/new-group');
-        else if (i === 1) router.push('/invite');
-      },
-    );
-  }
-
   return (
     <Screen>
       <ScrollView
@@ -69,12 +55,15 @@ export default function Home() {
           <Text className="text-label" style={{ fontSize: 28, fontWeight: '700' }}>
             Home
           </Text>
-          <Pressable
-            onPress={addMenu}
-            className="items-center justify-center rounded-full bg-fill3 active:opacity-70"
-            style={{ width: 40, height: 40 }}>
-            <Ionicons name="add" size={26} color="#d4fd80" />
-          </Pressable>
+          <GlassMenu
+            systemImage="plus"
+            icon="add"
+            title="Add"
+            items={[
+              { label: 'New group', systemImage: 'person.2.fill', onPress: () => router.push('/new-group') },
+              { label: 'Add a person', systemImage: 'person.crop.circle.badge.plus', onPress: () => router.push('/invite') },
+            ]}
+          />
         </View>
         <Hero eyebrow={eyebrow} amount={overall} currency={currency} sign={sign} />
 

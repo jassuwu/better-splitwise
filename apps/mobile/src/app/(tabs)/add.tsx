@@ -3,12 +3,13 @@ import { fromCents } from '@repo/split-core';
 import { toCreateExpenseParams, type SplitwiseUser } from '@repo/splitwise';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { ActionSheetIOS, Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
 import { Avatar } from '@/components/avatar';
-import { Button, NavRow, Row, Screen, Section } from '@/components/ui';
+import { MenuPicker } from '@/components/menu';
+import { Button, Row, Screen, Section } from '@/components/ui';
 import { amountToCents, buildSplit, centsToMoney } from '@/lib/amount';
 import { onCurrencyPicked } from '@/lib/currency-picker';
 import { avatarUri, displayName, firstName } from '@/lib/format';
@@ -87,8 +88,25 @@ export default function Add() {
   const valid =
     result !== null && totalCents > 0 && enoughPeople && payerId !== null && (targetKind !== 'group' || group !== null);
 
-  const payer = candidates.find((c) => c.id === payerId);
-  const payerName = payerId === me ? 'You' : payer ? firstName(payer) : '—';
+  const groupOptions = [
+    ...(groups.data ?? []).map((g) => ({ value: String(g.id), label: g.name })),
+    { value: 'nongroup', label: 'Non-group' },
+  ];
+  const groupValue = targetKind === 'nongroup' ? 'nongroup' : groupId != null ? String(groupId) : '';
+  const payerOptions = candidates
+    .filter((c) => included.has(c.id))
+    .map((c) => ({ value: String(c.id), label: c.id === me ? 'You' : firstName(c) }));
+  const payerValue = payerId != null ? String(payerId) : '';
+
+  function onGroupChange(v: string) {
+    if (v === 'nongroup') {
+      setTargetKind('nongroup');
+      setGroupId(null);
+    } else {
+      setTargetKind('group');
+      setGroupId(Number(v));
+    }
+  }
 
   function toggleIncluded(id: number) {
     setIncluded((prev) => {
@@ -108,37 +126,6 @@ export default function Add() {
   function pickCurrency() {
     onCurrencyPicked((code) => setCurrency(code));
     router.push(`/currency?selected=${currency}`);
-  }
-
-  function pickGroup() {
-    if (Platform.OS !== 'ios') return;
-    const gs = groups.data ?? [];
-    const options = [...gs.map((g) => g.name), 'Non-group', 'Cancel'];
-    ActionSheetIOS.showActionSheetWithOptions(
-      { options, cancelButtonIndex: options.length - 1, userInterfaceStyle: 'dark', title: 'Add to' },
-      (i) => {
-        if (i === undefined || i === options.length - 1) return;
-        if (i === gs.length) {
-          setTargetKind('nongroup');
-          setGroupId(null);
-        } else {
-          setTargetKind('group');
-          setGroupId(gs[i]?.id ?? null);
-        }
-      },
-    );
-  }
-
-  function pickPayer() {
-    if (Platform.OS !== 'ios') return;
-    const inc = candidates.filter((c) => included.has(c.id));
-    const options = [...inc.map((c) => (c.id === me ? 'You' : firstName(c))), 'Cancel'];
-    ActionSheetIOS.showActionSheetWithOptions(
-      { options, cancelButtonIndex: options.length - 1, userInterfaceStyle: 'dark', title: 'Paid by' },
-      (i) => {
-        if (i !== undefined && i < inc.length) setPayerId(inc[i]?.id ?? null);
-      },
-    );
   }
 
   function overridePrompt(m: SplitwiseUser) {
@@ -272,12 +259,14 @@ export default function Add() {
               className="flex-1 text-label text-[17px]"
             />
           </Row>
-          <NavRow
-            title="Group"
-            value={targetKind === 'group' ? (group?.name ?? '—') : 'Non-group'}
-            onPress={pickGroup}
-          />
-          <NavRow title="Paid by" value={payerName} onPress={pickPayer} />
+          <Row>
+            <Text className="flex-1 text-label text-[17px]">Group</Text>
+            <MenuPicker options={groupOptions} value={groupValue} onChange={onGroupChange} title="Add to" />
+          </Row>
+          <Row>
+            <Text className="flex-1 text-label text-[17px]">Paid by</Text>
+            <MenuPicker options={payerOptions} value={payerValue} onChange={(v) => setPayerId(Number(v))} title="Paid by" />
+          </Row>
         </Section>
 
         <View className="gap-2">
