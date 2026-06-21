@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { fromCents } from '@repo/split-core';
 import { toCreateExpenseParams, type SplitwiseUser } from '@repo/splitwise';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
@@ -75,11 +76,12 @@ export default function Add() {
       setPayerId(me ?? null);
     }
     setOverrides({});
-  }, [targetKind, group, me]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- key on group.id so a background refetch (new array, same group) doesn't reset mid-edit
+  }, [targetKind, group?.id, me]);
 
   const totalCents = amountToCents(amount);
   const includedIds = [...included].map(String);
-  const { result, overBy } = buildSplit({ currency, includedIds, totalCents, overrides });
+  const { result, overBy, underBy } = buildSplit({ currency, includedIds, totalCents, overrides });
   const shareFor = (id: number) => result?.perPerson.find((p) => p.personId === String(id))?.owed ?? 0;
   const enoughPeople = targetKind === 'group' ? included.size >= 1 : included.size >= 2;
   const valid =
@@ -142,7 +144,7 @@ export default function Add() {
   function overridePrompt(m: SplitwiseUser) {
     if (Platform.OS !== 'ios') return;
     const key = String(m.id);
-    const current = overrides[key] !== undefined ? centsToMoney(overrides[key] as number) : '';
+    const current = overrides[key] !== undefined ? fromCents(overrides[key] as number) : '';
     Alert.prompt(
       `${m.id === me ? 'Your' : `${firstName(m)}'s`} share`,
       'Leave blank to split equally — the rest rebalance.',
@@ -325,6 +327,11 @@ export default function Add() {
           {overBy > 0 ? (
             <Text className="text-red text-[14px] px-1">
               Locked shares exceed the total by {currency} {centsToMoney(overBy)}
+            </Text>
+          ) : null}
+          {underBy > 0 ? (
+            <Text className="text-red text-[14px] px-1">
+              Locked shares are under the total by {currency} {centsToMoney(underBy)}
             </Text>
           ) : null}
         </View>
