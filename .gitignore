@@ -39,3 +39,4 @@ yarn-error.log*
 
 # Local reference docs (design guidelines, etc.)
 *.pdf
+.htmlize/
