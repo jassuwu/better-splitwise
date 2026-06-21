@@ -1,21 +1,6 @@
 import { computeSplit, toCents, type SplitResult } from '@repo/split-core';
 
-import type { NumpadKey } from '@/components/numpad';
-
-/** Calculator-style: append digits, one decimal point, max 2 decimals, cap 9 whole digits. */
-export function applyAmountKey(s: string, k: NumpadKey): string {
-  if (k === 'del') return s.slice(0, -1);
-  if (k === '.') return s.includes('.') ? s : s === '' ? '0.' : `${s}.`;
-  if (s.includes('.')) {
-    const dec = s.split('.')[1] ?? '';
-    if (dec.length >= 2) return s;
-  } else if (s.replace('.', '').length >= 9) {
-    return s;
-  }
-  if (s === '0') return k;
-  return s + k;
-}
-
+/** Parse a typed decimal string (system keypad) to integer cents; 0 on junk. */
 export function amountToCents(s: string): number {
   if (!s || s === '.' || s === '0.') return 0;
   try {
@@ -27,14 +12,6 @@ export function amountToCents(s: string): number {
 
 function group(intStr: string): string {
   return intStr.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-}
-
-/** Format the raw input string for the big display (group thousands, keep typed decimals). */
-export function formatAmountInput(s: string): string {
-  if (!s) return '0';
-  const [intPart, dec] = s.split('.');
-  const g = group(intPart || '0');
-  return dec !== undefined ? `${g}.${dec}` : g;
 }
 
 /** Integer-safe cents → "1,200.50". */
