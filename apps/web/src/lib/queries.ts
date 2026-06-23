@@ -7,13 +7,21 @@ import {
 } from '@repo/splitwise';
 import { QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-export const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: false, staleTime: 30_000, refetchOnWindowFocus: false } },
-});
+export function createQueryClient() {
+  return new QueryClient({
+    defaultOptions: { queries: { retry: false, staleTime: 30_000, refetchOnWindowFocus: false } },
+  });
+}
 
-// Talks to the same-origin proxy; the http-only sw_token cookie carries the
-// Splitwise key server-side, so no key ever lands in browser JS and there's no CORS.
-export const client = new SplitwiseClient({ baseUrl: '/api/splitwise', token: () => '' });
+const TOKEN_KEY = 'sw_token';
+function getToken(): string {
+  return typeof localStorage !== 'undefined' ? (localStorage.getItem(TOKEN_KEY) ?? '') : '';
+}
+
+// BYO personal key, kept in localStorage, sent as `Authorization: Bearer <key>`. The
+// same-origin /api/splitwise proxy forwards that header to secure.splitwise.com
+// server-side (fixes CORS). The key is the user's own — same trust model as the app.
+export const client = new SplitwiseClient({ baseUrl: '/api/splitwise', token: getToken });
 
 export function useMe() {
   return useQuery<SplitwiseUser>({ queryKey: ['me'], queryFn: () => client.getCurrentUser() });
@@ -37,14 +45,14 @@ export function useCreateExpense() {
 }
 
 export async function login(key: string): Promise<SplitwiseUser> {
-  const res = await fetch('/api/login', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ key }),
-  });
-  if (!res.ok) throw new Error(res.status === 401 ? 'That key was rejected by Splitwise.' : 'Sign-in failed.');
-  return (await res.json()) as SplitwiseUser;
+  if (typeof localStorage !== 'undefined') localStorage.setItem(TOKEN_KEY, key);
+  try {
+    return await client.getCurrentUser();
+  } catch {
+    if (typeof localStorage !== 'undefined') localStorage.removeItem(TOKEN_KEY);
+    throw new Error('That key was rejected by Splitwise.');
+  }
 }
-export async function logout(): Promise<void> {
-  await fetch('/api/login', { method: 'DELETE' });
+export function logout(): void {
+  if (typeof localStorage !== 'undefined') localStorage.removeItem(TOKEN_KEY);
 }

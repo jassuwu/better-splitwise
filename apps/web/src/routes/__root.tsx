@@ -1,9 +1,9 @@
 /// <reference types="vite/client" />
 import { QueryClientProvider } from '@tanstack/react-query';
 import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router';
-import type { ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
 
-import { queryClient } from '../lib/queries';
+import { createQueryClient } from '../lib/queries';
 import appCss from '../styles/app.css?url';
 
 export const Route = createRootRoute({
@@ -19,6 +19,8 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
+  // one QueryClient per render: a singleton would bleed cache across requests on the server
+  const [queryClient] = useState(createQueryClient);
   return (
     <RootDocument>
       <QueryClientProvider client={queryClient}>
