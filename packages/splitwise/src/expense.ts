@@ -72,7 +72,7 @@ export function formatItemizationComment(split: SplitResult, names: Record<strin
     if (p.other) parts.push(`fees ${fromCents(p.other)}`);
     return `${name}: ${fromCents(p.owed)} (${parts.join(" + ")})`;
   });
-  return [`split by item via super-splitwise · ${split.currency}`, ...lines].join("\n");
+  return [`split by item via better splitwise · ${split.currency}`, ...lines].join("\n");
 }
 
 export interface SettleInput {

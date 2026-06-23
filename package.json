@@ -1,5 +1,5 @@
 {
-  "name": "super-splitwise",
+  "name": "better-splitwise",
   "private": true,
   "scripts": {
     "build": "turbo run build",

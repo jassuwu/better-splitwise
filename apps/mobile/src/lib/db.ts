@@ -10,7 +10,7 @@ let instance: ExpoSQLiteDatabase<typeof schema> | undefined;
  */
 export function getDb(): ExpoSQLiteDatabase<typeof schema> {
   if (!instance) {
-    const sqlite = openDatabaseSync('super-splitwise.db');
+    const sqlite = openDatabaseSync('better-splitwise.db');
     sqlite.execSync('CREATE TABLE IF NOT EXISTS groups (id INTEGER PRIMARY KEY NOT NULL, name TEXT NOT NULL);');
     instance = drizzle(sqlite, { schema });
   }
