@@ -1,13 +1,28 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { displayName, netBalance } from '../lib/format';
 import { login, logout, useFriends, useGroups, useMe } from '../lib/queries';
 
 export const Route = createFileRoute('/')({ component: Home });
 
+function useMounted() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  return mounted;
+}
+
 function Home() {
+  // BYO-key data is client-only (localStorage token + a same-origin proxy). Never run the
+  // authed queries during SSR, where there is no token and the proxy URL is relative —
+  // doing so renders "logged out" and breaks the data path.
+  const mounted = useMounted();
+  if (!mounted) return <Centered>Loading…</Centered>;
+  return <Authed />;
+}
+
+function Authed() {
   const me = useMe();
   if (me.isLoading) return <Centered>Loading…</Centered>;
   if (me.isError || !me.data) return <KeyEntry />;
@@ -47,7 +62,7 @@ function KeyEntry() {
           <span className="text-brand">better</span> splitwise
         </h1>
         <p className="mt-2 text-sm text-mut">
-          Sign in with your Splitwise API key. It's kept in a secure, http-only cookie — never in the browser.
+          Sign in with your Splitwise API key. It's stored only in this browser and sent through our server to Splitwise.
         </p>
         <input
           type="password"
@@ -132,6 +147,11 @@ function Dashboard() {
       </div>
 
       {friends.isLoading || groups.isLoading ? <p className="mt-8 text-center text-sm text-mut">Loading balances…</p> : null}
+      {friends.isError || groups.isError ? (
+        <p className="mt-8 text-center text-sm text-neg">
+          Couldn&apos;t load your balances: {(friends.error ?? groups.error) instanceof Error ? (friends.error ?? groups.error)!.message : 'request failed'} — try signing out and back in.
+        </p>
+      ) : null}
 
       {people.length ? (
         <Group title="People">
