@@ -45,13 +45,17 @@ export function useCreateExpense() {
 }
 
 export async function login(key: string): Promise<SplitwiseUser> {
-  if (typeof localStorage !== 'undefined') localStorage.setItem(TOKEN_KEY, key);
-  try {
-    return await client.getCurrentUser();
-  } catch {
-    if (typeof localStorage !== 'undefined') localStorage.removeItem(TOKEN_KEY);
-    throw new Error('That key was rejected by Splitwise.');
+  // validate by sending the key straight through the proxy, so the real failure
+  // (proxy-saw-no-token vs Splitwise-rejected vs rate-limited) surfaces in the message
+  const res = await fetch('/api/splitwise/get_current_user', { headers: { authorization: `Bearer ${key}` } });
+  if (!res.ok) {
+    const detail = (await res.text().catch(() => '')).slice(0, 160);
+    if (res.status === 429) throw new Error('Splitwise is rate-limiting — wait a minute and try again.');
+    throw new Error(`Sign-in failed (HTTP ${res.status}). ${detail}`);
   }
+  const data = (await res.json()) as { user: SplitwiseUser };
+  if (typeof localStorage !== 'undefined') localStorage.setItem(TOKEN_KEY, key);
+  return data.user;
 }
 export function logout(): void {
   if (typeof localStorage !== 'undefined') localStorage.removeItem(TOKEN_KEY);
