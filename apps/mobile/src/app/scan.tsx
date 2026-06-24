@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { computeSplit, type SplitInput } from '@repo/split-core';
-import { formatItemizationComment, toCreateExpenseParams } from '@repo/splitwise';
+import { encodeItemization, toCreateExpenseParams, type Itemization } from '@repo/splitwise';
 import { Stack, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
@@ -221,7 +221,24 @@ export default function Scan() {
       return;
     }
     const userIds = Object.fromEntries(members.map((m) => [String(m.id), m.id] as const));
-    const names = Object.fromEntries(members.map((m) => [String(m.id), firstName(m)] as const));
+    const nameById: Record<number, string> = Object.fromEntries(members.map((m) => [m.id, firstName(m)]));
+    const itemization: Itemization = {
+      currency,
+      items: items
+        .filter((it) => amountToCents(it.total) > 0 && (assign[it.id]?.size ?? 0) > 0)
+        .map((it) => ({
+          label: it.description || 'item',
+          cents: amountToCents(it.total),
+          assignees: [...(assign[it.id] ?? new Set<number>())],
+        })),
+      fees: {
+        tax: amountToCents(tax) || undefined,
+        tip: amountToCents(tip) || undefined,
+        service: amountToCents(service) || undefined,
+        other: amountToCents(fees) || undefined,
+        tipStrategy: tipEqual ? 'equal' : 'proportional',
+      },
+    };
     create.mutate(
       {
         params: toCreateExpenseParams(split, {
@@ -231,7 +248,7 @@ export default function Scan() {
           userIds,
           currencyCode: currency,
         }),
-        comment: formatItemizationComment(split, names),
+        comment: encodeItemization(itemization, nameById),
       },
       {
         onSuccess: () => {
