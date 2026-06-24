@@ -86,6 +86,37 @@ export function useCreateExpense() {
   });
 }
 
+export function useUpdateExpense() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      id: number;
+      params: Partial<CreateExpenseParams>;
+      comment?: string;
+      // Splitwise has no comment-edit endpoint — delete the stale itemization
+      // comment (best-effort) before posting the fresh one.
+      replaceCommentId?: number;
+    }) => {
+      const c = client();
+      const expense = await c.updateExpense(input.id, input.params);
+      if (input.replaceCommentId !== undefined) {
+        try {
+          await c.deleteComment(input.replaceCommentId);
+        } catch {
+          // already gone / not deletable — keep going so the new comment still lands
+        }
+      }
+      if (input.comment) await c.createComment(input.id, input.comment);
+      return expense;
+    },
+    onSuccess: (_expense, input) => {
+      invalidateLedger(qc);
+      void qc.invalidateQueries({ queryKey: keys.expense(input.id) });
+      void qc.invalidateQueries({ queryKey: keys.comments(input.id) });
+    },
+  });
+}
+
 export function useDeleteExpense() {
   const qc = useQueryClient();
   return useMutation({
