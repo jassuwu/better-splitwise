@@ -34,7 +34,17 @@ export default function TabsLayout() {
   }, [friends.data]);
 
   return (
-    <NativeTabs tintColor="#d4fd80">
+    <NativeTabs
+      backgroundColor="#000000"
+      tintColor="#d4fd80"
+      iconColor={{ default: 'rgba(235,235,245,0.6)', selected: '#d4fd80' }}
+      labelStyle={{
+        default: { color: 'rgba(235,235,245,0.6)' },
+        selected: { color: '#d4fd80' },
+      }}
+      indicatorColor="rgba(212,253,128,0.16)"
+      rippleColor="rgba(212,253,128,0.16)"
+    >
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="house.fill" md="home" />
