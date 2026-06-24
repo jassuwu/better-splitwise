@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+/*
+  better splitwise — marketing site.
+  near-black canvas, one lime accent, montserrat for the wordmark.
+  mirrors the app's palette (#0c0e12 / #d4fd80) so the site and the app
+  read as the same thing.
+*/
+@theme {
+  /* canvas */
+  --color-base: #0c0e12;
+  --color-surface: #14181d;
+  --color-line: rgba(255, 255, 255, 0.07);
+
+  /* ink */
+  --color-ink: #f4f6f8;
+  --color-muted: #8b939c;
+
+  /* accents — better's lime + splitwise's heritage teal */
+  --color-lime: #d4fd80;
+  --color-teal: #1cc29f;
+
+  /* type — montserrat (splitwise's own typeface) for display, system for prose */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+  --font-display: "Montserrat Variable", var(--font-sans);
+}
+
+html {
+  background: var(--color-base);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background: var(--color-lime);
+  color: #0a0a0a;
+}

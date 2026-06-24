@@ -1,0 +1,87 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const REPO = "https://github.com/jassuwu/better-splitwise";
+const RELEASES = `${REPO}/releases/latest`;
+
+const points = [
+  {
+    title: "works with your splitwise",
+    body: "same account, same ledger. your friends keep vanilla splitwise — nothing to migrate, no one to convince.",
+  },
+  {
+    title: "scan, split by item, done",
+    body: "photograph a receipt, assign items to whoever ordered them, and push one clean expense back to splitwise.",
+  },
+  {
+    title: "minimal & mine",
+    body: "no account, no ads, no upsell. your splitwise key stays on your device. open source, mit-licensed.",
+  },
+];
+---
+
+<Layout>
+  <main class="mx-auto flex min-h-dvh max-w-2xl flex-col px-6">
+    <!-- hero -->
+    <section class="flex flex-1 flex-col justify-center py-24">
+      <img src="/favicon.svg" alt="" width="56" height="56" class="mb-8 size-14" />
+
+      <h1 class="font-display text-5xl font-extrabold tracking-tight sm:text-6xl">
+        <span class="text-lime">better</span> splitwise
+      </h1>
+
+      <p class="mt-5 max-w-xl text-lg leading-relaxed text-muted sm:text-xl">
+        a quieter client for the splitwise you already use. scan a receipt,
+        split it by item, and push one clean expense to the ledger your friends
+        already share.
+      </p>
+
+      <div class="mt-9 flex flex-wrap items-center gap-3">
+        <a
+          href={RELEASES}
+          class="rounded-full bg-lime px-5 py-2.5 text-sm font-semibold text-[#0a0a0a] transition hover:opacity-90"
+        >
+          get it on android
+        </a>
+        <a
+          href={REPO}
+          class="rounded-full border border-line px-5 py-2.5 text-sm font-medium text-ink transition hover:border-white/25"
+        >
+          view source
+        </a>
+      </div>
+
+      <p class="mt-4 text-sm text-muted">
+        ios — coming. for now, you can build it from source.
+      </p>
+    </section>
+
+    <!-- why -->
+    <section class="border-t border-line py-14">
+      <ul class="grid gap-8 sm:grid-cols-3">
+        {
+          points.map((p) => (
+            <li>
+              <h2 class="font-display text-base font-semibold text-ink">
+                {p.title}
+              </h2>
+              <p class="mt-2 text-sm leading-relaxed text-muted">{p.body}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <!-- footer -->
+    <footer
+      class="mt-auto flex flex-wrap items-center justify-between gap-4 border-t border-line py-8 text-sm text-muted"
+    >
+      <p>not affiliated with splitwise.</p>
+      <nav class="flex items-center gap-5">
+        <a href={REPO} class="transition hover:text-ink">github</a>
+        <a href="https://jass.gg" class="transition hover:text-ink">jass.gg</a>
+        <span class="opacity-60">mit</span>
+      </nav>
+    </footer>
+  </main>
+</Layout>
