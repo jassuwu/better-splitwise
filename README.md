@@ -53,11 +53,15 @@ splitwise_. both things are true.)
 2. **review** — fix anything the scan got wrong; receipts are messy and you stay in
    control.
 3. **who's in** — pick a group or a friend; attendees pre-fill from the group.
-4. **assign** — tap items to say who shared what (with weights when shares are
-   uneven). everyone-on-everything is the default, so most splits are a few taps.
+4. **assign** — items start unassigned; tap an item, then tap who shared it — or
+   **everyone** / **just me** to go fast, and clear a line back to unassigned anytime.
 5. **confirm** — see each person's share broken down (subtotal + their cut of tax,
    tip and fees), then push. it lands in splitwise as one expense with correct
    per-person paid/owed shares and a readable itemization comment.
+
+changed the split later? open any itemized expense and tap **edit split** — better
+splitwise rebuilds the items, people and fees from that comment, so you can
+re-assign and save without starting from a photo again.
 
 prefer to type it in? the **add** flow does the same split math without a receipt,
 and **settle up** records a payment in a tap.
@@ -76,7 +80,8 @@ each person's shares always sum back to the total. no leftover pennies, ever.
   the app keeps no account or database of its own, so splitwise is the only
   backend. each split's line items ride along in the expense's splitwise comment
   (splitwise doesn't store them itself), so they travel with the expense, show
-  back as a rich breakdown, and survive a reinstall — nothing to lose.
+  back as a rich breakdown you can reopen and re-split anytime, and survive a
+  reinstall — nothing to lose.
 
 ## surfaces
 
