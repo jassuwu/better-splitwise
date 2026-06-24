@@ -79,17 +79,10 @@ export default function Scan() {
   const delta = computedCents - declaredTotal;
   const reconciled = Math.abs(delta) < 1;
 
-  // default everyone onto every item when first entering the assign step
+  // items start UNASSIGNED — you opt people in per item. just focus the first
+  // item when entering the assign step so the picker has something to act on.
   useEffect(() => {
-    if (step !== 'assign' || attending.length === 0) return;
-    setAssign((prev) => {
-      if (Object.keys(prev).length > 0) return prev;
-      const next: Record<string, Set<number>> = {};
-      items.forEach((it) => {
-        next[it.id] = new Set(attending.map((m) => m.id));
-      });
-      return next;
-    });
+    if (step !== 'assign') return;
     setFocusId((f) => f ?? items[0]?.id ?? null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
@@ -466,7 +459,8 @@ export default function Scan() {
             <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 12, gap: 9 }}>
               {items.map((it) => {
                 const on = assign[it.id] ?? new Set<number>();
-                const empty = on.size === 0 && amountToCents(it.total) > 0;
+                const empty = on.size === 0;
+                const everyone = on.size > 0 && on.size === attending.length;
                 const focused = it.id === focusId;
                 return (
                   <Pressable
@@ -476,7 +470,7 @@ export default function Scan() {
                     style={{
                       backgroundColor: '#1C1C1E',
                       borderWidth: 1,
-                      borderColor: focused ? '#d4fd80' : empty ? '#FF453A' : 'transparent',
+                      borderColor: focused ? '#d4fd80' : 'transparent',
                     }}>
                     <View className="flex-row items-center">
                       <Text className="flex-1 text-label text-[16px]" numberOfLines={1}>
@@ -487,9 +481,14 @@ export default function Scan() {
                         {currency} {it.total || '0'}
                       </Text>
                     </View>
-                    <View className="flex-row mt-2" style={{ gap: 4 }}>
+                    <View className="flex-row items-center mt-2" style={{ gap: 4 }}>
                       {empty ? (
-                        <Text className="text-red text-[12px]">unassigned</Text>
+                        <>
+                          <Ionicons name="add-circle-outline" size={15} color="rgba(235,235,245,0.3)" />
+                          <Text className="text-tertiaryLabel text-[12px]">tap to assign</Text>
+                        </>
+                      ) : everyone ? (
+                        <Text className="text-secondaryLabel text-[12px]">everyone</Text>
                       ) : (
                         attending
                           .filter((m) => on.has(m.id))
@@ -525,7 +524,7 @@ export default function Scan() {
                     })}
                   </View>
                 </ScrollView>
-                <View className="flex-row gap-2 mt-3">
+                <View className="flex-row items-center gap-2 mt-3">
                   <Pressable
                     onPress={() => setAll(focusItem.id, attending.map((m) => m.id))}
                     className="rounded-full px-4 py-2 border border-tint">
@@ -536,6 +535,16 @@ export default function Scan() {
                     className="rounded-full px-4 py-2 bg-fill3">
                     <Text className="text-label text-[14px]">Just me</Text>
                   </Pressable>
+                  <View className="flex-1" />
+                  {(assign[focusItem.id]?.size ?? 0) > 0 ? (
+                    <Pressable
+                      onPress={() => setAll(focusItem.id, [])}
+                      className="flex-row items-center gap-1 rounded-full px-3 py-2"
+                      hitSlop={6}>
+                      <Ionicons name="close-circle" size={18} color="rgba(235,235,245,0.6)" />
+                      <Text className="text-secondaryLabel text-[14px]">Clear</Text>
+                    </Pressable>
+                  ) : null}
                 </View>
               </View>
             ) : null}
