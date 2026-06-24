@@ -4,14 +4,14 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*", "!src/routeTree.gen.ts"],
-      "outputs": [".output/**", ".nitro/**", ".tanstack/**", ".vinxi/**", "dist/**", "src/routeTree.gen.ts"]
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["dist/**", ".astro/**"]
     },
     "lint": {
       "dependsOn": ["^lint"]
     },
     "check-types": {
-      "dependsOn": ["^check-types", "build"]
+      "dependsOn": ["^check-types"]
     },
     "test": {
       "dependsOn": ["^build"]
