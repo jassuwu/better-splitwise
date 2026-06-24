@@ -148,9 +148,10 @@ cd apps/mobile && bun run icons   # regenerate every brand icon from one source 
 
 ## brand
 
-the mark is a friendly parody of the splitwise app icon — the same faceted "gem"
+the mark is a faithful parody of the splitwise app icon — the same faceted "gem"
 house, with two changes: the greens become lime, and the lone _S_ becomes _BS_
-(better splitwise). the wordmark is **Comic Code Bold**. one source svg in
+(better splitwise). the letters are recreated as vectors in **Montserrat**, splitwise's
+own brand typeface, so the parody holds down to the letterforms. one source svg in
 [`apps/mobile/scripts/build-icons.ts`](apps/mobile/scripts/build-icons.ts) generates
 the entire Expo and web icon set.
 
