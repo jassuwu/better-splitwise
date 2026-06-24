@@ -155,6 +155,11 @@ export default function ExpenseDetail() {
               </Section>
             )}
 
+            {itemized ? (
+              <View className="mb-3">
+                <Button label="Edit split" variant="ghost" onPress={() => router.push(`/scan?expenseId=${id}`)} />
+              </View>
+            ) : null}
             <Button label={del.isPending ? 'Deleting…' : 'Delete'} variant="danger" onPress={onDelete} disabled={del.isPending} />
           </>
         )}
