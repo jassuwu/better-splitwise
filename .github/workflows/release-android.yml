@@ -1,0 +1,65 @@
+name: Release Android APK
+
+# tags only — never on push. each v* tag spends one EAS build from the
+# free-tier quota (15 Android/month, 1 concurrent, low-priority queue).
+on:
+  push:
+    tags: ['v*']
+
+# needed to create the GitHub Release and upload the APK asset
+permissions:
+  contents: write
+
+jobs:
+  android:
+    name: build apk on EAS → github release
+    runs-on: ubuntu-latest
+    # free tier is a low-priority queue + up to a 45-min build; give it room
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build APK on EAS (preview profile)
+        id: build
+        working-directory: apps/mobile
+        run: |
+          echo "::notice::Building ${{ github.ref_name }} on EAS (free tier, low-priority queue — this can take a while)…"
+          eas build --platform android --profile preview --non-interactive --wait --json > build.json
+          url=$(jq -r '.[0].artifacts.applicationArchiveUrl // .[0].artifacts.buildUrl // empty' build.json)
+          if [ -z "$url" ]; then
+            echo "::error::No APK artifact URL in the EAS build output."
+            cat build.json
+            exit 1
+          fi
+          echo "apk_url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Download the APK
+        working-directory: apps/mobile
+        run: curl -fSL "${{ steps.build.outputs.apk_url }}" -o "better-splitwise-${{ github.ref_name }}.apk"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: apps/mobile/better-splitwise-${{ github.ref_name }}.apk
+          generate_release_notes: true
+          fail_on_unmatched_files: true
