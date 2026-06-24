@@ -16,13 +16,11 @@
       "dependencies": {
         "@expo/ui": "~56.0.18",
         "@expo/vector-icons": "^15.0.2",
-        "@repo/db": "*",
         "@repo/ocr": "*",
         "@repo/split-core": "*",
         "@repo/splitwise": "*",
         "@tanstack/react-query": "^5.101.0",
         "babel-preset-expo": "~56.0.0",
-        "drizzle-orm": "catalog:",
         "expo": "~56.0.12",
         "expo-constants": "~56.0.18",
         "expo-device": "~56.0.4",
@@ -37,7 +35,6 @@
         "expo-router": "~56.2.11",
         "expo-secure-store": "~56.0.4",
         "expo-splash-screen": "~56.0.10",
-        "expo-sqlite": "~56.0.5",
         "expo-status-bar": "~56.0.4",
         "expo-symbols": "~56.0.6",
         "expo-system-ui": "~56.0.5",
@@ -83,20 +80,6 @@
         "tailwindcss": "^4.1.0",
         "typescript": "catalog:",
         "vite": "^7.0.0",
-      },
-    },
-    "packages/db": {
-      "name": "@repo/db",
-      "version": "0.0.0",
-      "dependencies": {
-        "@repo/split-core": "*",
-        "@repo/splitwise": "*",
-        "drizzle-orm": "catalog:",
-      },
-      "devDependencies": {
-        "@repo/typescript-config": "*",
-        "typescript": "catalog:",
-        "vitest": "catalog:",
       },
     },
     "packages/eslint-config": {
@@ -597,8 +580,6 @@
     "@react-native/normalize-colors": ["@react-native/normalize-colors@0.85.3", "", {}, "sha512-hj0PScZEhIbcOvQV5yMKX3ha4XEIOy/SVE1Rrpp0beW0dpNLOgSC7KDxGewmDnIHK9YdQUXGY9eMEfShUMIaZw=="],
 
     "@react-native/virtualized-lists": ["@react-native/virtualized-lists@0.85.3", "", { "dependencies": { "invariant": "^2.2.4", "nullthrows": "^1.1.1" }, "peerDependencies": { "@types/react": "^19.2.0", "react": "*", "react-native": "0.85.3" }, "optionalPeers": ["@types/react"] }, "sha512-dsCjI//OIPEUJMyNHp4l7zNLVjCx7bcaRUceOCkU+IB17hkbtbGWvi7HjGFSzy7FJGmS/MOlcfpb72xXiy1Oig=="],
-
-    "@repo/db": ["@repo/db@workspace:packages/db"],
 
     "@repo/eslint-config": ["@repo/eslint-config@workspace:packages/eslint-config"],
 
