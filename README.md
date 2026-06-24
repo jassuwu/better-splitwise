@@ -23,7 +23,7 @@
   </picture>
 </p>
 
-<p align="center"><em>the header is a placeholder — a real demo lands here soon.</em></p>
+<p align="center"><em>snap the bill · tap who had each item · one fair, to-the-cent expense in your splitwise.</em></p>
 
 ## the idea
 
