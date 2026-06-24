@@ -72,9 +72,11 @@ each person's shares always sum back to the total. no leftover pennies, ever.
 - **receipts in seconds** — the slowest part of splitting becomes a photo.
 - **per-item precision** — assign each line to the right people instead of pretending
   dinner was equal.
-- **local-first & private** — your splitwise key and your Gemini key live in the
-  device keychain and never touch a server of mine. line items are kept on-device
-  (splitwise doesn't store them), so you can reopen a scan and re-split it later.
+- **stateless & private** — your splitwise and Gemini keys live on your device;
+  the app keeps no account or database of its own, so splitwise is the only
+  backend. each split's line items ride along in the expense's splitwise comment
+  (splitwise doesn't store them itself), so they travel with the expense, show
+  back as a rich breakdown, and survive a reinstall — nothing to lose.
 
 ## surfaces
 
@@ -90,12 +92,11 @@ framework-free, so the same split runs identically on mobile, on web, and in tes
 
 | package | what it does |
 | --- | --- |
-| [`apps/mobile`](apps/mobile) | the Expo app — expo router, nativewind, react query, expo sqlite |
+| [`apps/mobile`](apps/mobile) | the Expo app — expo router, nativewind, react query |
 | [`apps/web`](apps/web) | the web companion — tanstack start + vite + nitro, tailwind |
 | [`@repo/split-core`](packages/split-core) | the split engine: per-item, weighted, exact fee allocation (zod-validated) |
 | [`@repo/splitwise`](packages/splitwise) | a thin splitwise api client + adapters (expense / settle / group / balances) |
 | [`@repo/ocr`](packages/ocr) | provider-agnostic receipt extraction; a Gemini structured-output adapter |
-| [`@repo/db`](packages/db) | local-first storage (sqlite + drizzle) for receipts, items and sync state |
 | [`@repo/ui`](packages/ui) | shared components |
 
 ## run it yourself
