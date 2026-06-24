@@ -5,14 +5,9 @@
 </p>
 
 <p align="center">
-  scan a receipt, assign items to people, push one expense.
-  splitwise stays the ledger; this just feeds it faster.
-</p>
-
-<p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue?style=flat-square"></a>
   <img alt="Built with Expo + React Native" src="https://img.shields.io/badge/built%20with-Expo%20%2B%20React%20Native-000020?style=flat-square&logo=expo&logoColor=white">
-  <img alt="Platforms: Android, iOS soon" src="https://img.shields.io/badge/platforms-Android%20%C2%B7%20iOS%20soon-555?style=flat-square">
+  <img alt="Platforms: Android, iOS" src="https://img.shields.io/badge/platforms-Android%20%C2%B7%20iOS%20soon-555?style=flat-square">
   <img alt="Works with Splitwise" src="https://img.shields.io/badge/works%20with-Splitwise-1cc29f?style=flat-square">
 </p>
 
@@ -23,15 +18,14 @@
   </picture>
 </p>
 
-<p align="center"><em>snap the bill · tap who had each item · one fair, to-the-cent expense in your splitwise.</em></p>
+<p align="center"><em>snap the bill, tap who had each item, one fair expense in your splitwise.</em></p>
 
 ## the idea
 
 splitwise is good at tracking who owes whom. it's bad at entering a messy group dinner.
-itemizing by hand is slow, and "split equally" goes wrong the moment someone skips the
-cocktails.
+itemizing by hand is slow, and "split equally" goes wrong the moment someone skips something.
 
-so this is just the front end i wanted for it. it talks to the splitwise api, so every
+so this is just the front end i wanted for it. it talks to splitwise, so every
 expense it creates is a real splitwise expense your friends already see. there's no second
 ledger and nothing for anyone else to install. it does the few things i do constantly, in
 as few taps as i could manage. "better" means better for how i split bills, not
@@ -41,16 +35,11 @@ objectively. (and yes, the icon says BS. both readings intended.)
 
 scan, review, assign, push:
 
-1. **scan** — snap or pick a receipt; your own Gemini key reads it back (on-device) as items, tax, tip and fees.
-2. **review** — fix anything the scan got wrong.
-3. **who's in** — pick a group or friend; attendees pre-fill.
-4. **assign** — tap an item, tap who shared it; **everyone** / **just me** for speed.
-5. **confirm** — see each person's breakdown, then push: one real splitwise expense with correct paid/owed shares and an itemized comment.
-
-prefer typing? **add** does the same math without a receipt, and **settle up** is one tap.
-changed your mind later? open any itemized expense and **edit split** — it rebuilds the
-items and people from that comment, no photo needed. fees get allocated down to the last
-cent, and the shares always add up to the total.
+1. **scan** - snap or pick a receipt; your own Gemini key reads it back (on-device) as items, tax, tip and fees.
+2. **review** - fix anything the scan got wrong.
+3. **who's in** - pick a group or friend; attendees pre-fill.
+4. **assign** - tap an item, tap who shared it; **everyone** / **just me** for speed.
+5. **confirm** - see each person's breakdown, then push: one real splitwise expense with correct paid/owed shares and an itemized comment.
 
 ## why it's better (for me)
 
