@@ -2,6 +2,7 @@
   "expo": {
     "name": "better splitwise",
     "slug": "better-splitwise",
+    "owner": "jassdotgg",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -50,6 +51,11 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "3bd94e5d-8733-4aee-a15b-a98b2dcd9ed2"
+      }
     }
   }
 }
