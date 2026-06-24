@@ -1,3 +1,4 @@
+import { decodeItemization } from '@repo/splitwise';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -34,6 +35,23 @@ export default function ExpenseDetail() {
 
   const e = expense.data;
   const payers = (e?.users ?? []).filter((u) => Number(u.paid_share) > 0);
+
+  // The itemization rides along in a comment (Splitwise can't store line items).
+  // Decode it to render rich, and keep it out of the raw comments list.
+  const decoded = (comments.data ?? []).map((c) => ({ c, itemization: decodeItemization(c.content) }));
+  const itemized = decoded.find((d) => d.itemization)?.itemization ?? null;
+  const plainComments = decoded.filter((d) => !d.itemization).map((d) => d.c);
+
+  const userName = (uid: number): string => {
+    const u = (e?.users ?? []).find((x) => (x.user?.id ?? x.user_id) === uid);
+    return u ? nameOf(u) : `#${uid}`;
+  };
+  const feeTotal = itemized
+    ? (itemized.fees.tax ?? 0) + (itemized.fees.tip ?? 0) + (itemized.fees.service ?? 0) + (itemized.fees.other ?? 0)
+    : 0;
+  const itemizedTotal = itemized ? itemized.items.reduce((s, it) => s + it.cents, 0) + feeTotal : 0;
+  // flag when the expense was edited in vanilla Splitwise after we itemized it
+  const itemizedStale = !!itemized && Math.abs(itemizedTotal - Math.round(Number(e?.cost ?? 0) * 100)) >= 1;
 
   function onDelete() {
     del.mutate(id, { onSuccess: () => router.back() });
@@ -81,6 +99,41 @@ export default function ExpenseDetail() {
               ))}
             </Section>
 
+            {itemized ? (
+              <Section header="Items">
+                {itemized.items.map((item, i) => (
+                  <Row key={i}>
+                    <View className="flex-1 pr-3">
+                      <Text className="text-label text-[17px]" numberOfLines={1}>
+                        {item.label}
+                      </Text>
+                      {item.assignees.length > 0 ? (
+                        <Text className="text-secondaryLabel text-[13px] mt-0.5" numberOfLines={1}>
+                          {item.assignees.map(userName).join(', ')}
+                        </Text>
+                      ) : null}
+                    </View>
+                    <Text className="text-label text-[17px]" style={MONO}>
+                      {money(item.cents / 100, e.currency_code)}
+                    </Text>
+                  </Row>
+                ))}
+                {feeTotal > 0 ? (
+                  <Row>
+                    <Text className="flex-1 text-secondaryLabel text-[15px]">Tax, tip &amp; fees</Text>
+                    <Text className="text-secondaryLabel text-[15px]" style={MONO}>
+                      {money(feeTotal / 100, e.currency_code)}
+                    </Text>
+                  </Row>
+                ) : null}
+              </Section>
+            ) : null}
+            {itemizedStale ? (
+              <Text className="text-tertiaryLabel text-[12px] px-1 mb-2" style={{ marginTop: -8 }}>
+                Edited in Splitwise since it was itemized — the breakdown above may be out of date.
+              </Text>
+            ) : null}
+
             {e.details ? (
               <Section header="Notes">
                 <Row>
@@ -89,9 +142,9 @@ export default function ExpenseDetail() {
               </Section>
             ) : null}
 
-            {(comments.data ?? []).length > 0 && (
+            {plainComments.length > 0 && (
               <Section header="Comments">
-                {(comments.data ?? []).map((c) => (
+                {plainComments.map((c) => (
                   <Row key={c.id}>
                     <Text className="text-label text-[15px]">
                       {c.user ? `${displayName(c.user)}: ` : ''}
