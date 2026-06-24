@@ -3,19 +3,20 @@ import Layout from "../layouts/Layout.astro";
 
 const REPO = "https://github.com/jassuwu/better-splitwise";
 const RELEASES = `${REPO}/releases/latest`;
+const TWITTER = "https://x.com/jassdotgg";
 
 const points = [
   {
-    title: "works with your splitwise",
-    body: "same account, same ledger. your friends keep vanilla splitwise — nothing to migrate, no one to convince.",
+    title: "only what i want to see",
+    body: "who you owe, who owes you. no activity feed, no ads, no nudges, no upsell.",
   },
   {
-    title: "scan, split by item, done",
-    body: "photograph a receipt, assign items to whoever ordered them, and push one clean expense back to splitwise.",
+    title: "equal or by item",
+    body: "add an expense and split it the way the bill actually went — evenly, or line by line. one clean push to splitwise.",
   },
   {
-    title: "minimal & mine",
-    body: "no account, no ads, no upsell. your splitwise key stays on your device. open source, mit-licensed.",
+    title: "no one to convince",
+    body: "it's a client over the splitwise your friends already use. nothing to migrate, no new app to nag anyone into installing.",
   },
 ];
 ---
@@ -23,7 +24,7 @@ const points = [
 <Layout>
   <main class="mx-auto flex min-h-dvh max-w-2xl flex-col px-6">
     <!-- hero -->
-    <section class="flex flex-1 flex-col justify-center py-24">
+    <section class="pt-24 pb-12">
       <img src="/favicon.svg" alt="" width="56" height="56" class="mb-8 size-14" />
 
       <h1 class="font-display text-5xl font-extrabold tracking-tight sm:text-6xl">
@@ -31,9 +32,9 @@ const points = [
       </h1>
 
       <p class="mt-5 max-w-xl text-lg leading-relaxed text-muted sm:text-xl">
-        a quieter client for the splitwise you already use. scan a receipt,
-        split it by item, and push one clean expense to the ledger your friends
-        already share.
+        a simpler splitwise client — it shows me only what i want to see: who i
+        owe, and who owes me. i add an expense, split it equally or by item, and
+        that's it.
       </p>
 
       <div class="mt-9 flex flex-wrap items-center gap-3">
@@ -56,6 +57,24 @@ const points = [
       </p>
     </section>
 
+    <!-- the reel -->
+    <section class="pb-16">
+      <figure>
+        <video
+          class="aspect-video w-full rounded-2xl border border-line bg-surface"
+          controls
+          playsinline
+          preload="none"
+          poster="/reel-poster.jpg"
+        >
+          <source src="/reel.mp4" type="video/mp4" />
+        </video>
+        <figcaption class="mt-3 text-center text-sm text-muted">
+          one ₹7,400 dinner, split to the cent. press play — 28 seconds, sound on.
+        </figcaption>
+      </figure>
+    </section>
+
     <!-- why -->
     <section class="border-t border-line py-14">
       <ul class="grid gap-8 sm:grid-cols-3">
@@ -72,6 +91,17 @@ const points = [
       </ul>
     </section>
 
+    <!-- a client for me -->
+    <section class="border-t border-line py-12">
+      <p class="max-w-xl text-base leading-relaxed text-muted">
+        it's a client i built for myself. if you find it useful too, tell me —
+        <a
+          href={TWITTER}
+          class="text-lime underline-offset-4 hover:underline">@jassdotgg</a
+        >.
+      </p>
+    </section>
+
     <!-- footer -->
     <footer
       class="mt-auto flex flex-wrap items-center justify-between gap-4 border-t border-line py-8 text-sm text-muted"
@@ -79,6 +109,7 @@ const points = [
       <p>not affiliated with splitwise.</p>
       <nav class="flex items-center gap-5">
         <a href={REPO} class="transition hover:text-ink">github</a>
+        <a href={TWITTER} class="transition hover:text-ink">twitter</a>
         <a href="https://jass.gg" class="transition hover:text-ink">jass.gg</a>
         <span class="opacity-60">mit</span>
       </nav>

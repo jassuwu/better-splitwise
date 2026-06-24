@@ -9,11 +9,11 @@ interface Props {
 
 const {
   title = "better splitwise",
-  description = "a quieter client for the splitwise you already use — scan a receipt, split it by item, and push one clean expense.",
+  description = "a simpler splitwise client — see who you owe and who owes you, add an expense split equally or by item, and push it to the splitwise your friends already use.",
 } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
-const ogImage = new URL("/icon-512.png", Astro.site).href;
+const ogImage = new URL("/reel-poster.jpg", Astro.site).href;
 ---
 
 <!doctype html>
@@ -38,7 +38,7 @@ const ogImage = new URL("/icon-512.png", Astro.site).href;
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
