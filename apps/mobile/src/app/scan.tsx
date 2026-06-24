@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { computeSplit, type SplitInput } from '@repo/split-core';
-import { encodeItemization, toCreateExpenseParams, type Itemization } from '@repo/splitwise';
-import { Stack, useRouter } from 'expo-router';
+import { computeSplit, fromCents, type SplitInput } from '@repo/split-core';
+import { decodeItemization, encodeItemization, toCreateExpenseParams, type Itemization } from '@repo/splitwise';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,7 +12,7 @@ import { MenuPicker } from '@/components/menu';
 import { Button, Money, Row, Screen, Section } from '@/components/ui';
 import { amountToCents, centsToMoney } from '@/lib/amount';
 import { avatarUri, displayName, firstName } from '@/lib/format';
-import { useCreateExpense, useCurrentUser, useGroups } from '@/lib/queries';
+import { useComments, useCreateExpense, useCurrentUser, useExpense, useGroups, useUpdateExpense } from '@/lib/queries';
 import { scanReceipt } from '@/lib/scan';
 import { getDefaultCurrency, getLastGroupId, setLastGroupId } from '@/lib/token-store';
 
@@ -39,12 +39,18 @@ const PH = 'rgba(235,235,245,0.3)';
 export default function Scan() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { expenseId } = useLocalSearchParams<{ expenseId?: string }>();
+  const editId = expenseId ? Number(expenseId) : null;
+  const isEdit = editId != null && Number.isFinite(editId);
   const user = useCurrentUser();
   const groups = useGroups();
   const create = useCreateExpense();
+  const update = useUpdateExpense();
+  const editExpense = useExpense(isEdit ? (editId as number) : NaN);
+  const editComments = useComments(isEdit ? (editId as number) : NaN);
   const me = user.data?.id ?? null;
 
-  const [step, setStep] = useState<Step>('scan');
+  const [step, setStep] = useState<Step>(isEdit ? 'review' : 'scan');
   const [scanning, setScanning] = useState(false);
 
   const [merchant, setMerchant] = useState('');
@@ -62,12 +68,62 @@ export default function Scan() {
   const [payerId, setPayerId] = useState<number | null>(null);
   const [assign, setAssign] = useState<Record<string, Set<number>>>({});
   const [focusId, setFocusId] = useState<string | null>(null);
+  const [oldCommentId, setOldCommentId] = useState<number | null>(null);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    if (isEdit) return;
     void getDefaultCurrency().then((c) => {
       if (c) setCurrency(c);
     });
-  }, []);
+  }, [isEdit]);
+
+  // edit mode: rehydrate the wizard from an existing itemized expense, decoded
+  // from its comment. Runs once, after the expense, its comments, and groups load.
+  useEffect(() => {
+    if (!isEdit || hydrated) return;
+    const exp = editExpense.data;
+    if (!exp || !editComments.data || !groups.data) return;
+    const match = editComments.data.map((c) => ({ c, it: decodeItemization(c.content) })).find((d) => d.it);
+    if (!match?.it) {
+      toast('No itemization to edit on this expense');
+      setHydrated(true);
+      router.back();
+      return;
+    }
+    const it = match.it;
+    const drafts = it.items.map((item, i) => ({
+      id: `ed-${i}`,
+      description: item.label,
+      quantity: 1,
+      total: fromCents(item.cents),
+    }));
+    const nextAssign: Record<string, Set<number>> = {};
+    it.items.forEach((item, i) => {
+      nextAssign[`ed-${i}`] = new Set(item.assignees);
+    });
+    const involved = (exp.users ?? [])
+      .map((u) => u.user?.id ?? u.user_id)
+      .filter((x): x is number => typeof x === 'number');
+    const payer = exp.users?.find((u) => Number(u.paid_share) > 0);
+    setOldCommentId(match.c.id);
+    setMerchant(exp.description ?? '');
+    setCurrency(exp.currency_code ?? it.currency);
+    setItems(drafts);
+    setAssign(nextAssign);
+    setTax(it.fees.tax ? fromCents(it.fees.tax) : '');
+    setTip(it.fees.tip ? fromCents(it.fees.tip) : '');
+    setService(it.fees.service ? fromCents(it.fees.service) : '');
+    setFees(it.fees.other ? fromCents(it.fees.other) : '');
+    setTipEqual(it.fees.tipStrategy === 'equal');
+    setDeclaredTotal(Math.round(Number(exp.cost) * 100));
+    setGroupId(exp.group_id ?? 0);
+    setAttendees(new Set(involved));
+    setPayerId(payer?.user?.id ?? payer?.user_id ?? me ?? null);
+    setFocusId(drafts[0]?.id ?? null);
+    setHydrated(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEdit, hydrated, editExpense.data, editComments.data, groups.data]);
 
   const group = groups.data?.find((g) => g.id === groupId) ?? null;
   const members = group?.members ?? [];
@@ -89,7 +145,8 @@ export default function Scan() {
 
   function go(dir: 1 | -1) {
     const i = ORDER.indexOf(step);
-    if (dir === -1 && i <= 0) {
+    // in edit mode the wizard opens at 'review' (no scan step), so back exits there
+    if (dir === -1 && (i <= 0 || (isEdit && step === 'review'))) {
       router.back();
       return;
     }
@@ -239,17 +296,31 @@ export default function Scan() {
         tipStrategy: tipEqual ? 'equal' : 'proportional',
       },
     };
+    const params = toCreateExpenseParams(split, {
+      groupId: group.id,
+      description: merchant || 'itemized bill',
+      payerId: String(payerId),
+      userIds,
+      currencyCode: currency,
+    });
+    const comment = encodeItemization(itemization, nameById);
+
+    if (isEdit && editId != null) {
+      update.mutate(
+        { id: editId, params, comment, replaceCommentId: oldCommentId ?? undefined },
+        {
+          onSuccess: () => {
+            toast('Itemization updated');
+            router.back();
+          },
+          onError: (e) => toast('Could not save', { description: e instanceof Error ? e.message : String(e) }),
+        },
+      );
+      return;
+    }
+
     create.mutate(
-      {
-        params: toCreateExpenseParams(split, {
-          groupId: group.id,
-          description: merchant || 'itemized bill',
-          payerId: String(payerId),
-          userIds,
-          currencyCode: currency,
-        }),
-        comment: encodeItemization(itemization, nameById),
-      },
+      { params, comment },
       {
         onSuccess: () => {
           void setLastGroupId(group.id);
@@ -640,9 +711,17 @@ export default function Scan() {
             ) : null}
             {step === 'confirm' ? (
               <Button
-                label={create.isPending ? 'Adding…' : 'Add to Splitwise'}
+                label={
+                  isEdit
+                    ? update.isPending
+                      ? 'Saving…'
+                      : 'Save changes'
+                    : create.isPending
+                      ? 'Adding…'
+                      : 'Add to Splitwise'
+                }
                 onPress={push}
-                disabled={create.isPending || !preview}
+                disabled={create.isPending || update.isPending || !preview}
               />
             ) : null}
           </View>
